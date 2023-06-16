@@ -3,10 +3,10 @@
 
 
 cd "$(dirname "$0")"
-version="2.6.0"
+version="2.7.0"
 gtk="gtk4"
 
-rm -rf builder/ ~/rpmbuild/
+rm -rf builder/
 mkdir -p builder ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 
 # copy to a tmp directory
@@ -41,8 +41,8 @@ rpm --checksig builder/*.rpm
 echo "==========================="
 rpmlint awf-$gtk.spec builder/*.rpm
 echo "==========================="
-ls -dltrh builder/*.rpm
+ls -dlth "$PWD/"builder/*.rpm
 echo "==========================="
 
 # cleanup
-rm -rf builder/*/ ~/rpmbuild/
+rm -rf builder/*/

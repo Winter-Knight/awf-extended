@@ -1,9 +1,9 @@
 #!/bin/bash
-# debian: sudo apt install dpkg-dev devscripts build-essential dh-make dh-autoreconf intltool libgtk-4-dev
+# Debian: sudo apt install dpkg-dev devscripts build-essential dh-make dh-autoreconf intltool libgtk-4-dev
 
 
 cd "$(dirname "$0")"
-version="2.6.0"
+version="2.7.0"
 gtk="gtk4"
 
 rm -rf builder/
@@ -28,27 +28,28 @@ else
 	tar czf $temp.tar.gz $temp
 	cd ..
 fi
-rm builder/awf-extended-$version/debian
 
-# create packages for debian and ubuntu
-for serie in experimental impish hirsute; do
+
+# create packages for Debian and Ubuntu
+for serie in experimental mantic lunar kinetic jammy; do
 
 	if [ $serie = "experimental" ]; then
-		# for ubuntu
+		# for Ubuntu
 		cp -a builder/awf-extended-$version/ builder/awf-extended-$version+src/
-		# debian only
+		# Debian only
 		cd builder/awf-extended-$version/
 	else
-		# ubuntu only
+		# Ubuntu only
 		cp -a builder/awf-extended-$version+src/ builder/awf-extended-$version+$serie/
 		cd builder/awf-extended-$version+$serie/
 	fi
 
 	dh_make -s -y -f ../awf-extended-$version.tar.gz -p awf-$gtk
 
-	rm -f debian/*ex debian/*EX debian/README* debian/*doc* debian/deb.sh
+	rm -f debian/*ex debian/*EX debian/README* debian/*doc*
 	mkdir debian/upstream
 	cp debian-$gtk/* debian/
+	rm debian/deb.sh
 	mv debian/metadata debian/upstream/metadata
 
 
@@ -56,7 +57,7 @@ for serie in experimental impish hirsute; do
 	if [ $serie = "experimental" ]; then
 		dpkg-buildpackage -us -uc
 	else
-		# debhelper: experimental:13 hirsute:13 focal:12 bionic:9 xenial:9 trusty:9
+		# debhelper: experimental:13 focal:12 bionic:9 xenial:9 trusty:9
 		if [ $serie = "focal" ]; then
 			sed -i 's/debhelper-compat (= 13)/debhelper-compat (= 12)/g' debian/control
 		fi
@@ -81,23 +82,23 @@ for serie in experimental impish hirsute; do
 		sed -i 's/-1) /-1+'$serie') /' debian/changelog
 		dpkg-buildpackage -us -uc -ui -d -S
 	fi
-	echo "==========================="
+	echo "=========================== debsign =="
 	cd ..
 
 	if [ $serie = "experimental" ]; then
-		# debian only
+		# Debian only
 		debsign awf-${gtk}_$version-*.changes
-		echo "==========================="
+		echo "=========================== lintian =="
 		lintian -EviIL +pedantic awf-${gtk}_$version-*.deb
 	else
-		# ubuntu only
+		# Ubuntu only
 		debsign awf-${gtk}_$version*+$serie*source.changes
 	fi
 	echo "==========================="
 	cd ..
 done
 
-ls -dltrh builder/*.deb builder/*.changes
+ls -dlth "$PWD/"builder/*.deb "$PWD/"builder/*.changes
 echo "==========================="
 
 # cleanup

@@ -1,5 +1,5 @@
 Name:          awf-gtk4
-Version:       2.6.0
+Version:       2.7.0
 Release:       0
 Summary:       Theme preview application for GTK 4
 Summary(fr):   Application d'aperçu de thème pour GTK 4
@@ -7,13 +7,13 @@ License:       GPL-3.0-or-later
 URL:           https://github.com/luigifab/awf-extended
 Source0:       %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 
-BuildRequires: gtk4-devel
-BuildRequires: gettext
-BuildRequires: gcc
+BuildRequires: aspell-fr
 BuildRequires: autoconf
 BuildRequires: automake
 BuildRequires: desktop-file-utils
-BuildRequires: aspell-fr
+BuildRequires: gcc
+BuildRequires: gettext
+BuildRequires: gtk4-devel
 Requires:      gtk4
 Requires:      hicolor-icon-theme
 
@@ -40,7 +40,7 @@ touch {NEWS,AUTHORS,README,ChangeLog}
 mv LICENSE COPYING
 
 %build
-autoreconf -f -i
+autoreconf -fi
 %configure
 %make_build
 
@@ -48,6 +48,7 @@ autoreconf -f -i
 %make_install
 mkdir -p %{buildroot}%{_datadir}/applications/
 mkdir -p %{buildroot}%{_datadir}/icons/hicolor/
+mkdir -p %{buildroot}%{_mandir}/man1/ %{buildroot}%{_mandir}/fr/man1/
 for file in icons/*/*/*; do mv $file ${file/\/awf./\/%{name}.}; done
 cp -a icons/* %{buildroot}%{_datadir}/icons/hicolor/
 for file in src/po/*.po; do
@@ -55,27 +56,36 @@ for file in src/po/*.po; do
   mkdir -p %{buildroot}%{_datadir}/locale/${code}/LC_MESSAGES/
   msgfmt src/po/${code}.po -o %{buildroot}%{_datadir}/locale/${code}/LC_MESSAGES/%{name}.mo
 done
+install -p -m 644 debian-gtk/%{name}.1 %{buildroot}%{_mandir}/man1/%{name}.1
+install -p -m 644 debian-gtk/%{name}.fr.1 %{buildroot}%{_mandir}/fr/man1/%{name}.1
 desktop-file-install --dir=%{buildroot}%{_datadir}/applications/ applications/%{name}.desktop
-%find_lang %{name}
+%find_lang %{name} --with-man
 
 %files -f %{name}.lang
 %license COPYING
 %doc README.md
 %{_bindir}/%{name}
+%{_mandir}/man1/%{name}.1*
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/icons/hicolor/*/apps/%{name}.png
 %{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
 
 
 %changelog
+* Fri Jun 16 2023 Fabrice Creuzot <code@luigifab.fr> - 2.7.0-2
+- Package spec update
+
+* Tue Jun 06 2023 Fabrice Creuzot <code@luigifab.fr> - 2.7.0-1
+- New upstream release
+
 * Thu Sep 09 2021 Fabrice Creuzot <code@luigifab.fr> - 2.6.0-1
-- New upstream version
+- New upstream release
 
 * Wed Jul 07 2021 Fabrice Creuzot <code@luigifab.fr> - 2.5.0-1
-- New upstream version
+- New upstream release
 
 * Wed May 05 2021 Fabrice Creuzot <code@luigifab.fr> - 2.4.0-1
-- New upstream version
+- New upstream release
 
 * Sun Apr 04 2021 Fabrice Creuzot <code@luigifab.fr> - 2.3.0-1
 - Initial openSUSE package release

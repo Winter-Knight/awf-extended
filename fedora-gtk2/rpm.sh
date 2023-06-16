@@ -1,12 +1,12 @@
 #!/bin/bash
-# Fedora: sudo dnf install rpmdevtools rpm-sign autoconf automake gtk2-devel desktop-file-utils hunspell-fr
+# Fedora: sudo dnf install rpmdevtools rpm-sign autoconf automake gtk2-devel desktop-file-utils aspell-fr enchant2-aspell
 # Fedora: configure: error: C compiler cannot create executables? remove and reinstall glibc-devel gcc
 
 cd "$(dirname "$0")"
-version="2.6.0"
+version="2.7.0"
 gtk="gtk2"
 
-rm -rf builder/ ~/rpmbuild/
+rm -rf builder/
 mkdir -p builder ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 
 # copy to a tmp directory
@@ -41,8 +41,8 @@ rpm --checksig builder/*.rpm
 echo "==========================="
 rpmlint awf-$gtk.spec builder/*.rpm
 echo "==========================="
-ls -dltrh builder/*.rpm
+ls -dlth "$PWD/"builder/*.rpm
 echo "==========================="
 
 # cleanup
-rm -rf builder/*/ ~/rpmbuild/
+rm -rf builder/*/

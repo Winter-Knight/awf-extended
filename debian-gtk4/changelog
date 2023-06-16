@@ -1,11 +1,17 @@
+awf-gtk4 (2.7.0-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Fabrice Creuzot <code@luigifab.fr>  Tue, 06 Jun 2023 20:00:00 +0000
+
 awf-gtk4 (2.6.0-1) experimental; urgency=low
 
-  * New upstream version
+  * New upstream release
 
  -- Fabrice Creuzot <code@luigifab.fr>  Thu, 09 Sep 2021 20:00:00 +0000
 
 awf-gtk4 (2.5.0-1) experimental; urgency=low
 
-  * Initial debian package release (Closes: #959434)
+  * Initial Debian package release (Closes: #959434)
 
  -- Fabrice Creuzot <code@luigifab.fr>  Wed, 07 Jul 2021 20:00:00 +0000
