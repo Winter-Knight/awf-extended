@@ -48,10 +48,10 @@ for serie in experimental; do
 
 	rm -f debian/*ex debian/*EX debian/README* debian/*doc*
 	mkdir debian/upstream
-
-
+	cp debian-gtk/* debian/
 	rm debian/deb.sh
 	mv debian/metadata debian/upstream/metadata
+
 
 
 	if [ $serie = "experimental" ]; then
@@ -79,7 +79,7 @@ for serie in experimental; do
 			echo 9 > debian/compat
 		fi
 		sed -i 's/experimental/'$serie'/g' debian/changelog
-		sed -i 's/-1) /-1+'$serie') /' debian/changelog
+		sed -i 's/-2) /-2+'$serie') /' debian/changelog
 		dpkg-buildpackage -us -uc -ui -d -S
 	fi
 	echo "=========================== debsign =="

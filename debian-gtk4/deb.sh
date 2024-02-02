@@ -47,9 +47,9 @@ for serie in experimental noble mantic jammy; do
 	dh_make -s -y -f ../awf-extended-$version.tar.gz -p awf-$gtk
 
 	rm -f debian/*ex debian/*EX debian/README* debian/*doc*
-	mkdir debian/upstream
 	cp debian-$gtk/* debian/
-	rm debian/deb.sh debian/*.install
+	cp debian-gtk/*.1 debian-gtk/awf-$gtk.manpages debian-gtk/metadata debian-gtk/watch debian/
+	rm debian/deb.sh
 	mv debian/metadata debian/upstream/metadata
 
 
@@ -79,7 +79,7 @@ for serie in experimental noble mantic jammy; do
 			echo 9 > debian/compat
 		fi
 		sed -i 's/experimental/'$serie'/g' debian/changelog
-		sed -i 's/-1) /-1+'$serie') /' debian/changelog
+		sed -i 's/-2) /-2+'$serie') /' debian/changelog
 		dpkg-buildpackage -us -uc -ui -d -S
 	fi
 	echo "=========================== debsign =="

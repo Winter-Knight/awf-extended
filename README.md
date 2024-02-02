@@ -5,22 +5,22 @@ A widget factory is a theme preview application for GTK. It displays the various
 ## Screenshots
 
 GTK 2.24 (Pango 1.51)\
-[![Preview with GTK 2 - Main window](images/thumbs/gtk2.png?raw=true)](images/gtk2.png?raw=true)
-[![Preview with GTK 2 - Menu](images/thumbs/gtk2-menu.png?raw=true)](images/gtk2-menu.png?raw=true)
-[![Preview with GTK 2 - RTL - Main window](images/thumbs/gtk2-rtl.png?raw=true)](images/gtk2-rtl.png?raw=true)
-[![Preview with GTK 2 - RTL - Menu](images/thumbs/gtk2-rtl-menu.png?raw=true)](images/gtk2-rtl-menu.png?raw=true)
+[<img alt="Preview with GTK 2 - Main window" src="images/thumbs/gtk2.png?raw=true" width="200" />](images/gtk2.png?raw=true)
+[<img alt="Preview with GTK 2 - Menu" src="images/thumbs/gtk2-menu.png?raw=true" width="200" />](images/gtk2-menu.png?raw=true)
+[<img alt="Preview with GTK 2 - RTL - Main window" src="images/thumbs/gtk2-rtl.png?raw=true" width="200" />](images/gtk2-rtl.png?raw=true)
+[<img alt="Preview with GTK 2 - RTL - Menu" src="images/thumbs/gtk2-rtl-menu.png?raw=true" width="200" />](images/gtk2-rtl-menu.png?raw=true)
 
 GTK 3.24 (Pango 1.51)\
-[![Preview with GTK 3 - Main window](images/thumbs/gtk3.png?raw=true)](images/gtk3.png?raw=true)
-[![Preview with GTK 3 - Menu](images/thumbs/gtk3-menu.png?raw=true)](images/gtk3-menu.png?raw=true)
-[![Preview with GTK 3 - RTL - Main window](images/thumbs/gtk3-rtl.png?raw=true)](images/gtk3-rtl.png?raw=true)
-[![Preview with GTK 3 - RTL - Menu](images/thumbs/gtk3-rtl-menu.png?raw=true)](images/gtk3-rtl-menu.png?raw=true)
+[<img alt="Preview with GTK 3 - Main window" src="images/thumbs/gtk3.png?raw=true" width="200" />](images/gtk3.png?raw=true)
+[<img alt="Preview with GTK 3 - Menu" src="images/thumbs/gtk3-menu.png?raw=true" width="200" />](images/gtk3-menu.png?raw=true)
+[<img alt="Preview with GTK 3 - RTL - Main window" src="images/thumbs/gtk3-rtl.png?raw=true" width="200" />](images/gtk3-rtl.png?raw=true)
+[<img alt="Preview with GTK 3 - RTL - Menu" src="images/thumbs/gtk3-rtl-menu.png?raw=true" width="200" />](images/gtk3-rtl-menu.png?raw=true)
 
 GTK 4.12 (Pango 1.51)\
-[![Preview with GTK 4 - Main window](images/thumbs/gtk4.png?raw=true)](images/gtk4.png?raw=true)
-[![Preview with GTK 4 - Menu](images/thumbs/gtk4-menu.png?raw=true)](images/gtk4-menu.png?raw=true)
-[![Preview with GTK 4 - RTL - Main window](images/thumbs/gtk4-rtl.png?raw=true)](images/gtk4-rtl.png?raw=true)
-[![Preview with GTK 4 - RTL - Menu](images/thumbs/gtk4-rtl-menu.png?raw=true)](images/gtk4-rtl-menu.png?raw=true)
+[<img alt="Preview with GTK 4 - Main window" src="images/thumbs/gtk4.png?raw=true" width="200" />](images/gtk4.png?raw=true)
+[<img alt="Preview with GTK 4 - Menu" src="images/thumbs/gtk4-menu.png?raw=true" width="200" />](images/gtk4-menu.png?raw=true)
+[<img alt="Preview with GTK 4 - RTL - Main window" src="images/thumbs/gtk4-rtl.png?raw=true" width="200" />](images/gtk4-rtl.png?raw=true)
+[<img alt="Preview with GTK 4 - RTL - Menu" src="images/thumbs/gtk4-rtl-menu.png?raw=true" width="200" />](images/gtk4-rtl-menu.png?raw=true)
 
 Theme used for the screenshots is available [here](https://github.com/luigifab/human-theme).
 
