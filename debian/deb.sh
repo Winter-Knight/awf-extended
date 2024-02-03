@@ -3,11 +3,11 @@
 
 
 cd "$(dirname "$0")"
-version="2.7.0"
+version="2.8.0"
 
 
-rm -rf builder/
 mkdir builder
+rm -rf builder/*
 
 # copy to a tmp directory
 if [ true ]; then
@@ -34,7 +34,7 @@ fi
 for serie in experimental; do
 
 	if [ $serie = "experimental" ]; then
-		# for Ubuntu
+		# copy for Ubuntu
 		cp -a builder/awf-extended-$version/ builder/awf-extended-$version+src/
 		# Debian only
 		cd builder/awf-extended-$version/
@@ -79,7 +79,7 @@ for serie in experimental; do
 			echo 9 > debian/compat
 		fi
 		sed -i 's/experimental/'$serie'/g' debian/changelog
-		sed -i 's/-1) /-1+'$serie') /' debian/changelog
+		sed -i 's/-2) /-2+'$serie') /' debian/changelog
 		dpkg-buildpackage -us -uc -ui -d -S
 	fi
 	echo "=========================== debsign =="

@@ -1,8 +1,8 @@
 /**
  * Forked  M/10/03/2020
- * Updated S/13/05/2023
+ * Updated D/03/12/2023
  *
- * Copyright 2020-2023 | Fabrice Creuzot (luigifab) <code~luigifab~fr>
+ * Copyright 2020-2024 | Fabrice Creuzot (luigifab) <code~luigifab~fr>
  * https://github.com/luigifab/awf-extended
  * https://www.luigifab.fr/gtk/awf-extended
  *
@@ -31,13 +31,14 @@
  *  msgfmt src/po/fr.po -o src/fr/LC_MESSAGES/awf.mo
  *
  * Tested with build.sh (via VirtualBox 7.0) with:
- *  Debian Testing 64               (1536 MB) GTK 2.24/3.24/4.8  + GLIB 2.74 + Pango 1.50
- *  Fedora Rawhide 64               (1536 MB) GTK 2.24/3.24/4.11 + GLIB 2.76 + Pango 1.50
- *  Ubuntu 23.04 Lunar Lobster 64   (2560 MB) GTK 2.24/3.24/4.10 + GLIB 2.76 + Pango 1.50
- *  Ubuntu 22.10 Kinetic Kudu 64    (2560 MB) GTK 2.24/3.24/4.8 + GLIB 2.74 + Pango 1.50
- *  Ubuntu 22.04 Jammy Jellyfish 64 (2560 MB) GTK 2.24/3.24/4.6 + GLIB 2.72 + Pango 1.50
- *  Ubuntu 21.10 Impish Indri 64    (2560 MB) GTK 2.24/3.24/4.4 + GLIB 2.68 + Pango 1.48
- *  Ubuntu 21.04 Hirsute Hippo 64   (1536 MB) GTK 2.24/3.24/4.0 + GLIB 2.68 + Pango 1.48
+ *  Debian Testing 64               (1536 MB) GTK 2.24/3.24/4.12 + GLIB 2.78 + Pango 1.51
+ *  Fedora Rawhide 64               (1536 MB) GTK 2.24/3.24/4.12 + GLIB 2.78 + Pango 1.51
+ *  Ubuntu 23.10 Mantic Minotaur 64 (2176 MB) GTK 2.24/3.24/4.12 + GLIB 2.78 + Pango 1.51
+ *  Ubuntu 23.04 Lunar Lobster 64   (2176 MB) GTK 2.24/3.24/4.10 + GLIB 2.76 + Pango 1.50
+ *  Ubuntu 22.10 Kinetic Kudu 64    (2176 MB) GTK 2.24/3.24/4.8 + GLIB 2.74 + Pango 1.50
+ *  Ubuntu 22.04 Jammy Jellyfish 64 (2176 MB) GTK 2.24/3.24/4.6 + GLIB 2.72 + Pango 1.50
+ *  Ubuntu 21.10 Impish Indri 64    (2176 MB) GTK 2.24/3.24/4.4 + GLIB 2.68 + Pango 1.48
+ *  Ubuntu 21.04 Hirsute Hippo 64   (2176 MB) GTK 2.24/3.24/4.0 + GLIB 2.68 + Pango 1.48
  *  Ubuntu 17.04 Zesty Zapus 32         (1536 MB) GTK 2.24/3.22 + GLIB 2.52 + Pango 1.40
  *  Ubuntu 16.10 Yakkety Yak 32         (1536 MB) GTK 2.24/3.20 + GLIB 2.50 + Pango 1.40
  *  Ubuntu 16.04 Xenial Xerus 32        (1536 MB) GTK 2.24/3.18 + GLIB 2.48 + Pango 1.38
@@ -75,7 +76,7 @@
 	#define SEPV (gtk_separator_new (GTK_ORIENTATION_VERTICAL))
 	#define PANEH (gtk_paned_new (GTK_ORIENTATION_HORIZONTAL))
 	#define PANEV (gtk_paned_new (GTK_ORIENTATION_VERTICAL))
-#else
+#else // GTK 2
 	#define GETTEXT_PACKAGE "awf-gtk2"
 	#define BOXH (gtk_hbox_new (FALSE, 0))
 	#define BOXV (gtk_vbox_new (FALSE, 0))
@@ -138,16 +139,16 @@
 #define AWF_ACCEL_CLOS "<Control>W"
 #define AWF_ACCEL_QUIT "<Control>Q"
 
-// https://stackoverflow.com/a/10018581/2980105
+// @see https://stackoverflow.com/a/10018581/2980105
 #define _app(String) dgettext (GETTEXT_PACKAGE, String)
 #define _gtk(String) dgettext (g_strdup_printf ("gtk%d0", GTK_MAJOR_VERSION), String)
 
 // global variables
 static GSList *list_system_theme = NULL;
 static GSList *list_user_theme = NULL;
-static GtkWidget *window = NULL, *statusbar = NULL;
+static GtkWidget *window = NULL, *toolbar, *statusbar = NULL;
 static GtkWidget *volume1 = NULL, *volume2 = NULL;
-static GtkWidget *progressbar1 = NULL, *progressbar2 = NULL, *progressbar3 = NULL, *progressbar4 = NULL;
+static GtkWidget *progressbar1 = NULL, *progressbar2 = NULL, *progressbar3 = NULL, *progressbar4 = NULL, *progressbar8 = NULL, *progressbar9 = NULL;
 static GtkWidget *scale1 = NULL, *scale2 = NULL, *scale3 = NULL, *scale4 = NULL, *scale5 = NULL, *scale6 = NULL;
 static GtkWidget *levelbar1 = NULL, *levelbar2 = NULL, *levelbar3 = NULL, *levelbar4 = NULL;
 static GtkWidget *levelbar5 = NULL, *levelbar6 = NULL, *levelbar7 = NULL, *levelbar8 = NULL;
@@ -175,6 +176,7 @@ static gboolean take_screenshot ();
 static void create_window (gpointer app);
 static void create_widgets (GtkWidget *root);
 static void add_to (GtkBox *box, GtkWidget *widget, gboolean fill, gboolean expand, guint padding, guint spacing);
+static void add_progressbar_statusbar_toolbar ();
 static void create_toolbar (GtkWidget *root);
 static void create_combos_entries (GtkWidget *root);
 static void create_spinbuttons (GtkWidget *root);
@@ -198,7 +200,7 @@ static void create_traditional_menubar (GtkApplication *app, GMenu *root);
 static GMenuItem* create_menuitem (GtkApplication *app, GMenu *menu, gchar *text, gchar *accel, gchar *keymap, GCallback function);
 static void accels_change (GtkEventControllerKey *controller, guint keyval, guint keycode, GdkModifierType state);
 static void accels_save ();
-#else
+#else // GTK 2 & 3
 static void create_traditional_menubar (GtkWidget *root);
 static GtkWidget* create_menu (GtkWidget *root, gchar *text);
 static GtkWidget* create_menuitem_tearoff (GtkWidget *menu);
@@ -292,7 +294,7 @@ int main (int argc, gchar **argv) {
 			case 'h':
 			default:
 				g_printf ("%s\n\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n\n%s\n%s\n",
-					g_strdup_printf (_app("A widget factory %s - GTK %d.%d"), VERSION, GTK_MAJOR_VERSION, GTK_MINOR_VERSION),
+					g_strdup_printf (_app("A widget factory - GTK %d.%d"), GTK_MAJOR_VERSION, GTK_MINOR_VERSION),
 					"-v            ", _app("Show version number."),
 					"-l            ", _app("List available themes."),
 					"-n            ", _app("Don't start spinners."),
@@ -459,6 +461,13 @@ static void update_theme (gchar *new_theme) {
 			update_statusbar (text);
 			g_free (text);
 
+			// resize window to minimal size
+			#if GTK_CHECK_VERSION (4,0,0)
+				gtk_window_set_default_size (GTK_WINDOW (window), 50, 50);
+			#else // GTK 2 & 3
+				gtk_window_resize (GTK_WINDOW (window), 50, 50);
+			#endif
+
 			if (opt_screenshot)
 				g_timeout_add_seconds (1, take_screenshot, NULL);
 		}
@@ -472,9 +481,10 @@ static void update_theme (gchar *new_theme) {
 		g_object_get (gtk_settings_get_default (), "gtk-theme-name", &current_theme, NULL);
 		//g_settings_set_string (g_settings_new ("org.mate.Marco.general"), "theme", (gchar*) current_theme);
 
+		// resize window to minimal size
 		#if GTK_CHECK_VERSION (4,0,0)
 			gtk_window_set_default_size (GTK_WINDOW (window), 50, 50);
-		#else
+		#else // GTK 2 & 3
 			gtk_window_resize (GTK_WINDOW (window), 50, 50);
 		#endif
 
@@ -509,6 +519,8 @@ static void update_values (GtkRange *range) {
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar2), value / 100.0);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar3), value / 100.0);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar4), value / 100.0);
+	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar8), value / 100.0);
+	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar9), value / 100.0);
 
 	#if GTK_CHECK_VERSION (3,6,0)
 		// range (0..1)
@@ -534,11 +546,18 @@ static void update_values (GtkRange *range) {
 	if (scale5 != (GtkWidget*) range) gtk_range_set_value (GTK_RANGE (scale5), value);
 	if (scale6 != (GtkWidget*) range) gtk_range_set_value (GTK_RANGE (scale6), value);
 
-	#if !GTK_CHECK_VERSION (3,0,0)
+	#if GTK_CHECK_VERSION (3,0,0)
+		gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (progressbar8), value > 50);
+		gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (progressbar9), value > 50);
+	#else // GTK 2
 		if (gtk_progress_bar_get_text (GTK_PROGRESS_BAR (progressbar1))) {
 			gchar *text = g_strdup_printf ("%i %%", (int) value);
 			gtk_progress_bar_set_text (GTK_PROGRESS_BAR (progressbar1), text);
+			gtk_progress_bar_set_text (GTK_PROGRESS_BAR (progressbar2), text);
 			gtk_progress_bar_set_text (GTK_PROGRESS_BAR (progressbar3), text);
+			gtk_progress_bar_set_text (GTK_PROGRESS_BAR (progressbar4), text);
+			gtk_progress_bar_set_text (GTK_PROGRESS_BAR (progressbar8), (value > 50) ? text : NULL);
+			gtk_progress_bar_set_text (GTK_PROGRESS_BAR (progressbar9), (value > 50) ? text : NULL);
 			g_free (text);
 		}
 	#endif
@@ -546,6 +565,8 @@ static void update_values (GtkRange *range) {
 
 static void update_widgets () {
 
+	// function called when user click on [+] toolbar button
+	// when toggle = true, the [+] toolbar button is NOT checked
 	gboolean toggle = gtk_notebook_get_scrollable (GTK_NOTEBOOK (notebook1));
 
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook1), !toggle);
@@ -572,7 +593,9 @@ static void update_widgets () {
 		gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (progressbar2), !toggle);
 		gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (progressbar3), !toggle);
 		gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (progressbar4), !toggle);
-	#else
+		gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (progressbar8), FALSE);
+		gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (progressbar9), FALSE);
+	#else // GTK 2
 		if (toggle) {
 			gtk_progress_bar_set_text (GTK_PROGRESS_BAR (progressbar1), NULL);
 			gtk_progress_bar_set_text (GTK_PROGRESS_BAR (progressbar2), NULL);
@@ -587,13 +610,34 @@ static void update_widgets () {
 			gtk_progress_bar_set_text (GTK_PROGRESS_BAR (progressbar4), text);
 			g_free (text);
 		}
+		gtk_progress_bar_set_text (GTK_PROGRESS_BAR (progressbar8), NULL);
+		gtk_progress_bar_set_text (GTK_PROGRESS_BAR (progressbar9), NULL);
 	#endif
+
+	// show progressbar in toolbar and statusbar only when [+] toolbar button is NOT checked
+	if (toggle) {
+		gtk_widget_hide (progressbar8);
+		gtk_widget_hide (progressbar9);
+	}
+	else {
+		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar8), 0.0);
+		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar9), 0.0);
+		gtk_widget_show (progressbar8);
+		gtk_widget_show (progressbar9);
+	}
 
 	gtk_scale_clear_marks (GTK_SCALE (scale5));
 	update_marks (GTK_SCALE (scale5), !toggle, GTK_POS_LEFT);
 
 	gtk_scale_clear_marks (GTK_SCALE (scale6));
 	update_marks (GTK_SCALE (scale6), !toggle, GTK_POS_RIGHT);
+
+	// resize window to minimal size
+	#if GTK_CHECK_VERSION (4,0,0)
+		gtk_window_set_default_size (GTK_WINDOW (window), 50, 50);
+	#else // GTK 2 & 3
+		gtk_window_resize (GTK_WINDOW (window), 50, 50);
+	#endif
 }
 
 static void update_marks (GtkScale *scale, gboolean value, int position) {
@@ -636,7 +680,7 @@ static gboolean take_screenshot () {
 		GdkWindow *root = gtk_widget_get_window (window);
 		gtk_window_get_size (GTK_WINDOW (window), &width, &height);
 		image = gdk_pixbuf_get_from_window (root, 0, 0, width, height);
-	#else
+	#else // GTK 2
 		GdkWindow *root = gtk_widget_get_window (window);
 		gtk_window_get_size (GTK_WINDOW (window), &width, &height);
 		image = gdk_pixbuf_get_from_drawable (NULL, root, gdk_colormap_get_system (), 0, 0, 0, 0, width, height);
@@ -658,7 +702,7 @@ static gboolean take_screenshot () {
 
 static void create_window (gpointer app) {
 
-	GtkWidget *vbox_window, *toolbar, *widgets;
+	GtkWidget *vbox_window, *widgets;
 	gchar *text;
 
 	// window
@@ -668,8 +712,9 @@ static void create_window (gpointer app) {
 		window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	#endif
 
+	gtk_widget_set_name (GTK_WIDGET (window), "AwfMainWindow");
 	gtk_window_set_icon_name (GTK_WINDOW (window), GETTEXT_PACKAGE);
-	text = g_strdup_printf (_app("A widget factory %s - GTK %d.%d"), VERSION, GTK_MAJOR_VERSION, GTK_MINOR_VERSION);
+	text = g_strdup_printf (_app("A widget factory - GTK %d.%d"), GTK_MAJOR_VERSION, GTK_MINOR_VERSION);
 	gtk_window_set_title (GTK_WINDOW (window), text);
 	g_free (text);
 
@@ -682,7 +727,7 @@ static void create_window (gpointer app) {
 	vbox_window = BOXV;
 	#if GTK_CHECK_VERSION (4,0,0)
 		gtk_window_set_child (GTK_WINDOW (window), vbox_window);
-	#else
+	#else // GTK 2 & 3
 		gtk_container_add (GTK_CONTAINER (window), vbox_window);
 	#endif
 
@@ -696,7 +741,7 @@ static void create_window (gpointer app) {
 			toolbar = BOXH;
 			add_to (GTK_BOX (vbox_window), toolbar, FALSE, FALSE, 0, 0);
 			create_toolbar (toolbar);
-		#else
+		#else // GTK 2 & 3
 			GtkWidget *menubar;
 			menubar = gtk_menu_bar_new ();
 			create_traditional_menubar (menubar);
@@ -712,7 +757,35 @@ static void create_window (gpointer app) {
 			create_widgets (widgets);
 
 		statusbar = gtk_statusbar_new ();
+		#if GTK_CHECK_VERSION (4,0,0)
+			// for the progressbar of the statusbar, before adding statusbar
+			gtk_widget_set_halign (gtk_widget_get_first_child (statusbar), GTK_ALIGN_FILL); // statusbar > box
+			gtk_widget_set_hexpand (gtk_widget_get_first_child (statusbar), TRUE);          // statusbar > box
+			gtk_widget_set_hexpand (gtk_widget_get_first_child (gtk_widget_get_first_child (statusbar)), TRUE); // statusbar > box > label
+		#endif
 		add_to (GTK_BOX (vbox_window), statusbar, FALSE, FALSE, 0, 0);
+
+		#if GTK_CHECK_VERSION (3,0,0)
+			progressbar8 = gtk_progress_bar_new ();
+			gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar8), 0);
+			gtk_orientable_set_orientation (GTK_ORIENTABLE (progressbar8), GTK_ORIENTATION_HORIZONTAL);
+			gtk_widget_hide (progressbar8);
+
+			progressbar9 = gtk_progress_bar_new ();
+			gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar9), 0);
+			gtk_orientable_set_orientation (GTK_ORIENTABLE (progressbar9), GTK_ORIENTATION_HORIZONTAL);
+			gtk_widget_hide (progressbar9);
+		#else // GTK 2 & 3
+			progressbar8 = gtk_progress_bar_new ();
+			gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar8), 0);
+			gtk_progress_bar_set_orientation (GTK_PROGRESS_BAR (progressbar8), GTK_PROGRESS_LEFT_TO_RIGHT);
+			gtk_widget_hide (progressbar8);
+
+			progressbar9 = gtk_progress_bar_new ();
+			gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar9), 0);
+			gtk_progress_bar_set_orientation (GTK_PROGRESS_BAR (progressbar9), GTK_PROGRESS_LEFT_TO_RIGHT);
+			gtk_widget_hide (progressbar9);
+		#endif
 
 		text = g_strdup_printf (_app("Theme %s loaded."), current_theme);
 		update_statusbar (text);
@@ -725,22 +798,26 @@ static void create_window (gpointer app) {
 	g_signal_connect (window, "destroy", G_CALLBACK (quit), NULL);
 
 	#if GTK_CHECK_VERSION (4,0,0)
-		// gtk-can-change-accels for GTK 4.x
+		// gtk-can-change-accels for GTK 4
 		//GtkEventController *event;
 		//event = gtk_event_controller_key_new ();
 		//g_signal_connect (event, "key-released", G_CALLBACK (accels_change), window);
 		//gtk_widget_add_controller (window, event);
 		gtk_widget_add_css_class (toolbar, "primary-toolbar");
 		gtk_widget_set_visible (window, TRUE);
+		add_progressbar_statusbar_toolbar ();
 	#elif GTK_CHECK_VERSION (3,4,0)
 		gtk_style_context_add_class (gtk_widget_get_style_context (toolbar), "primary-toolbar");
 		gtk_widget_show_all (window);
+		add_progressbar_statusbar_toolbar ();
 	#elif GTK_CHECK_VERSION (3,0,0)
 		gtk_style_context_add_class (gtk_widget_get_style_context (toolbar), "primary-toolbar");
 		gtk_widget_show_all (window);
+		add_progressbar_statusbar_toolbar ();
 		gtk_main ();
-	#else
+	#else // GTK 2
 		gtk_widget_show_all (window);
+		add_progressbar_statusbar_toolbar ();
 		gtk_main ();
 	#endif
 }
@@ -808,7 +885,7 @@ static void create_widgets (GtkWidget *root) {
 		#if GTK_CHECK_VERSION (4,0,0)
 			gtk_paned_set_start_child (GTK_PANED (vpane), hpane1);
 			gtk_paned_set_shrink_start_child (GTK_PANED (vpane), FALSE);
-		#else
+		#else // GTK 2 & 3
 			gtk_paned_pack1 (GTK_PANED (vpane), hpane1, TRUE, FALSE);
 		#endif
 
@@ -828,7 +905,7 @@ static void create_widgets (GtkWidget *root) {
 				gtk_paned_set_start_child (GTK_PANED (hpane1), hbox_frame1);
 				gtk_paned_set_resize_start_child (GTK_PANED (hpane1), FALSE);
 				gtk_paned_set_shrink_start_child (GTK_PANED (hpane1), FALSE);
-			#else
+			#else // GTK 2 & 3
 				gtk_paned_add1 (GTK_PANED (hpane1), hbox_frame1);
 			#endif
 
@@ -846,7 +923,7 @@ static void create_widgets (GtkWidget *root) {
 			#endif
 			#if GTK_CHECK_VERSION (4,0,0)
 				gtk_paned_set_end_child (GTK_PANED (hpane1), hbox_frame2);
-			#else
+			#else // GTK 2 & 3
 				gtk_paned_add2 (GTK_PANED (hpane1), hbox_frame2);
 			#endif
 
@@ -855,7 +932,7 @@ static void create_widgets (GtkWidget *root) {
 		#if GTK_CHECK_VERSION (4,0,0)
 			gtk_paned_set_end_child (GTK_PANED (vpane), hpane2);
 			gtk_paned_set_shrink_end_child (GTK_PANED (vpane), FALSE);
-		#else
+		#else // GTK 2 & 3
 			gtk_paned_pack2 (GTK_PANED (vpane), hpane2, TRUE, FALSE);
 		#endif
 
@@ -873,7 +950,7 @@ static void create_widgets (GtkWidget *root) {
 				gtk_paned_set_start_child (GTK_PANED (hpane2), hbox_notebook1);
 				gtk_paned_set_resize_start_child (GTK_PANED (hpane2), FALSE);
 				gtk_paned_set_shrink_start_child (GTK_PANED (hpane2), FALSE);
-			#else
+			#else // GTK 2 & 3
 				gtk_paned_add1 (GTK_PANED (hpane2), hbox_notebook1);
 			#endif
 
@@ -889,11 +966,53 @@ static void create_widgets (GtkWidget *root) {
 			#endif
 			#if GTK_CHECK_VERSION (4,0,0)
 				gtk_paned_set_end_child (GTK_PANED (hpane2), hbox_notebook2);
-			#else
+			#else // GTK 2 & 3
 				gtk_paned_add2 (GTK_PANED (hpane2), hbox_notebook2);
 			#endif
 
 			create_notebooks (hbox_notebook1, hbox_notebook2);
+}
+
+static void add_progressbar_statusbar_toolbar () {
+
+	#if GTK_CHECK_VERSION (4,0,0)
+		gtk_widget_set_valign (progressbar8, GTK_ALIGN_CENTER);
+		gtk_widget_set_halign (progressbar8, GTK_ALIGN_END);
+		gtk_widget_set_hexpand (progressbar8, TRUE);
+		gtk_widget_set_size_request (progressbar8, 140, -1);
+		gtk_widget_insert_after (progressbar8, toolbar, gtk_widget_get_last_child (toolbar));
+
+		gtk_widget_set_size_request (progressbar9, 140, -1);
+		gtk_widget_insert_after (progressbar9, gtk_widget_get_first_child (statusbar), gtk_widget_get_first_child (gtk_widget_get_first_child (statusbar))); // statusbar > box > label, statusbar > box > progressbar
+	#elif GTK_CHECK_VERSION (3,0,0)
+		gtk_widget_set_vexpand (progressbar8, FALSE);
+		gtk_widget_set_valign (progressbar8, GTK_ALIGN_CENTER);
+
+		GtkToolItem *item = gtk_tool_item_new ();
+		gtk_tool_item_set_expand (item, TRUE);
+		gtk_toolbar_insert (GTK_TOOLBAR (toolbar), item, -1);
+		gtk_widget_show (GTK_WIDGET (item));
+
+		item = gtk_tool_item_new ();
+		gtk_container_add (GTK_CONTAINER (item), progressbar8);
+		gtk_toolbar_insert (GTK_TOOLBAR (toolbar), item, -1);
+		gtk_widget_show (GTK_WIDGET (item));
+
+		gtk_box_pack_start (GTK_BOX (statusbar), progressbar9, FALSE, FALSE, 0);
+	#else // GTK 2
+		GtkToolItem *item = gtk_tool_item_new ();
+		gtk_tool_item_set_expand (item, TRUE);
+		gtk_toolbar_insert (GTK_TOOLBAR (toolbar), item, -1);
+		gtk_widget_show (GTK_WIDGET (item));
+
+		// @todo, reduce height of progressbar
+		item = gtk_tool_item_new ();
+		gtk_container_add (GTK_CONTAINER (item), progressbar8);
+		gtk_toolbar_insert (GTK_TOOLBAR (toolbar), item, -1);
+		gtk_widget_show (GTK_WIDGET (item));
+
+		gtk_box_pack_start (GTK_BOX (statusbar), progressbar9, FALSE, FALSE, 0);
+	#endif
 }
 
 static void add_to (GtkBox *box, GtkWidget *widget, gboolean fill, gboolean expand, guint padding, guint spacing) {
@@ -926,7 +1045,7 @@ static void add_to (GtkBox *box, GtkWidget *widget, gboolean fill, gboolean expa
 			gtk_box_set_spacing (GTK_BOX (widget), spacing);
 		}
 		gtk_box_append (box, widget);
-	#else
+	#else // GTK 2 & 3
 		if (GTK_IS_INFO_BAR (box))
 			box = GTK_BOX (gtk_info_bar_get_content_area (GTK_INFO_BAR (box)));
 		if (GTK_IS_CONTAINER (widget) && (padding > 0))
@@ -989,7 +1108,7 @@ static void create_toolbar (GtkWidget *root) {
 		add_to (GTK_BOX (root), icon5, FALSE, FALSE, 0, 0);
 		add_to (GTK_BOX (root), icon6, FALSE, FALSE, 0, 0);
 		add_to (GTK_BOX (root), icon7, FALSE, FALSE, 0, 0);
-	#else
+	#else // GTK 2 & 3
 		GtkWidget *icon1, *icon2, *icon3, *icon4, *icon5, *icon6, *icon7, *menu;
 
 		icon1 = GTK_WIDGET (gtk_menu_tool_button_new (NULL, NULL));
@@ -1079,7 +1198,7 @@ static void create_combos_entries (GtkWidget *root) {
 	entry2 = gtk_entry_new ();
 	#if GTK_CHECK_VERSION (4,0,0)
 		gtk_editable_set_text (GTK_EDITABLE (entry2), "Entry");
-	#else
+	#else // GTK 2 & 3
 		gtk_entry_set_text (GTK_ENTRY (entry2), "Entry");
 	#endif
 	gtk_widget_set_sensitive (entry2, FALSE);
@@ -1100,7 +1219,7 @@ static void create_combos_entries (GtkWidget *root) {
 	entry4 = gtk_entry_new ();
 	#if GTK_CHECK_VERSION (4,0,0)
 		gtk_editable_set_text (GTK_EDITABLE (entry4), "Entry");
-	#else
+	#else // GTK 2 & 3
 		gtk_entry_set_text (GTK_ENTRY (entry4), "Entry");
 	#endif
 	gtk_entry_set_icon_from_icon_name (GTK_ENTRY (entry4), GTK_ENTRY_ICON_PRIMARY, "gtk-clear");
@@ -1160,7 +1279,7 @@ static void create_checkbuttons (GtkWidget *root) {
 		checkbutton6 = gtk_check_button_new_with_label ("Check btn 6");
 		gtk_check_button_set_inconsistent (GTK_CHECK_BUTTON (checkbutton6), TRUE);
 		gtk_widget_set_sensitive (checkbutton6, FALSE);
-	#else
+	#else // GTK 2 & 3
 		checkbutton1 = gtk_check_button_new_with_label ("Check btn 1");
 
 		checkbutton2 = gtk_check_button_new_with_label ("Check btn 2");
@@ -1219,7 +1338,7 @@ static void create_radiobuttons (GtkWidget *root) {
 		gtk_check_button_set_group (GTK_CHECK_BUTTON (radiobutton6), GTK_CHECK_BUTTON (radiobutton4));
 		gtk_check_button_set_inconsistent (GTK_CHECK_BUTTON (radiobutton6), TRUE);
 		gtk_widget_set_sensitive (radiobutton6, FALSE);
-	#else
+	#else // GTK 2 & 3
 		radiobutton1 = gtk_radio_button_new_with_label (NULL, "Radio btn 1");
 
 		radiobutton2 = gtk_radio_button_new_with_label (gtk_radio_button_get_group (GTK_RADIO_BUTTON (radiobutton1)), "Radio btn 2");
@@ -1268,7 +1387,7 @@ static void create_otherbuttons (GtkWidget *root1, GtkWidget *root2, GtkWidget *
 		GdkRGBA color;
 		gdk_rgba_parse (&color, "#7796ba");
 		button5 = gtk_color_button_new_with_rgba (&color);
-	#else
+	#else // GTK 2
 		GdkColor color;
 		gdk_color_parse ("#7796ba", &color);
 		button5 = gtk_color_button_new_with_color (&color);
@@ -1286,8 +1405,10 @@ static void create_otherbuttons (GtkWidget *root1, GtkWidget *root2, GtkWidget *
 
 	#if GTK_CHECK_VERSION (4,0,0)
 		button7 = gtk_button_new_with_label ("Button 7");
+		gtk_widget_add_css_class (button7, "awf-cheatcode-btn7");
 		button8 = gtk_button_new_with_label ("Button 8");
-	#else
+		gtk_widget_add_css_class (button8, "awf-cheatcode-btn8");
+	#else // GTK 2 & 3
 		button7 = gtk_file_chooser_button_new ("GtkFileChooserDialog", GTK_FILE_CHOOSER_ACTION_OPEN);
 		button8 = gtk_file_chooser_button_new ("GtkFileChooserDialog", GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
 	#endif
@@ -1306,7 +1427,7 @@ static void create_otherbuttons (GtkWidget *root1, GtkWidget *root2, GtkWidget *
 		button12 = gtk_switch_new ();
 		gtk_switch_set_active (GTK_SWITCH (button12), FALSE);
 		gtk_widget_set_sensitive (button12, FALSE);
-	#else
+	#else // GTK 2
 		GtkWidget *combomenu1, *combomenu2, *combomenu3, *combomenu4;
 
 		combomenu1 = gtk_menu_new ();
@@ -1390,7 +1511,7 @@ static void create_progressbars (GtkWidget *root1, GtkWidget *root2, GtkWidget *
 		progressbar1 = gtk_progress_bar_new ();
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar1), 0.5);
 		gtk_orientable_set_orientation (GTK_ORIENTABLE (progressbar1), GTK_ORIENTATION_HORIZONTAL);
-	#else
+	#else // GTK 2
 		progressbar1 = gtk_progress_bar_new ();
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar1), 0.5);
 		gtk_progress_bar_set_orientation (GTK_PROGRESS_BAR (progressbar1), GTK_PROGRESS_LEFT_TO_RIGHT);
@@ -1401,7 +1522,7 @@ static void create_progressbars (GtkWidget *root1, GtkWidget *root2, GtkWidget *
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar2), 0.5);
 		gtk_progress_bar_set_inverted (GTK_PROGRESS_BAR (progressbar2), TRUE);
 		gtk_orientable_set_orientation (GTK_ORIENTABLE (progressbar2), GTK_ORIENTATION_HORIZONTAL);
-	#else
+	#else // GTK 2
 		progressbar2 = gtk_progress_bar_new ();
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar2), 0.5);
 		gtk_progress_bar_set_orientation (GTK_PROGRESS_BAR (progressbar2), GTK_PROGRESS_RIGHT_TO_LEFT);
@@ -1412,7 +1533,7 @@ static void create_progressbars (GtkWidget *root1, GtkWidget *root2, GtkWidget *
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar3), 0.5);
 		gtk_orientable_set_orientation (GTK_ORIENTABLE (progressbar3), GTK_ORIENTATION_VERTICAL);
 		gtk_widget_set_size_request (progressbar3, -1, 100);
-	#else
+	#else // GTK 2
 		progressbar3 = gtk_progress_bar_new ();
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar3), 0.5);
 		gtk_progress_bar_set_orientation (GTK_PROGRESS_BAR (progressbar3), GTK_PROGRESS_TOP_TO_BOTTOM);
@@ -1424,7 +1545,7 @@ static void create_progressbars (GtkWidget *root1, GtkWidget *root2, GtkWidget *
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar4), 0.5);
 		gtk_progress_bar_set_inverted (GTK_PROGRESS_BAR (progressbar4), TRUE);
 		gtk_orientable_set_orientation (GTK_ORIENTABLE (progressbar4), GTK_ORIENTATION_VERTICAL);
-	#else
+	#else // GTK 2
 		progressbar4 = gtk_progress_bar_new ();
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar4), 0.5);
 		gtk_progress_bar_set_orientation (GTK_PROGRESS_BAR (progressbar4), GTK_PROGRESS_BOTTOM_TO_TOP);
@@ -1575,7 +1696,7 @@ static void create_expander (GtkWidget *root) {
 		const gchar *config = g_getenv ("GTK_OVERLAY_SCROLLING");
 		if (config && (strcmp (config, "0") == 0))
 			gtk_scrolled_window_set_overlay_scrolling (GTK_SCROLLED_WINDOW (scrolled_window), FALSE);
-	#else
+	#else // GTK 2 & 3
 		scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 		gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolled_window), GTK_SHADOW_IN);
 	#endif
@@ -1591,7 +1712,7 @@ static void create_expander (GtkWidget *root) {
 	#if GTK_CHECK_VERSION (4,0,0)
 		gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled_window), tv);
 		gtk_expander_set_child (GTK_EXPANDER (expander), scrolled_window);
-	#else
+	#else // GTK 2 & 3
 		gtk_container_add (GTK_CONTAINER (scrolled_window), tv);
 		gtk_container_add (GTK_CONTAINER (expander), scrolled_window);
 	#endif
@@ -1631,7 +1752,7 @@ static void create_frames (GtkWidget *root1, GtkWidget *root2) {
 		frame4 = gtk_frame_new ("Frame (shadow etched out)");
 		gtk_style_context_add_class (gtk_widget_get_style_context (frame4), "border-ridge");
 		gtk_frame_set_shadow_type (GTK_FRAME (frame4), GTK_SHADOW_ETCHED_OUT);
-	#else
+	#else // GTK 2
 		frame1 = gtk_frame_new ("Frame (shadow in)");
 		gtk_frame_set_shadow_type (GTK_FRAME (frame1), GTK_SHADOW_IN);
 
@@ -1659,7 +1780,7 @@ static void create_notebooks (GtkWidget *root1, GtkWidget *root2) {
 	notebook4 = gtk_notebook_new ();
 
 	#if GTK_CHECK_VERSION (3,4,0) && !GTK_CHECK_VERSION (4,0,0)
-		// gtk-scroll-tabs for GTK 3.4 to 3.24
+		// gtk-scroll-tabs for GTK 3 (3.4..3.24)
 		// with or without gtk3-classic https://github.com/lah7/gtk3-classic/commit/66b65775822c46e07f5b2f30036010d06dbcbad4
 		gtk_widget_add_events (notebook1, GDK_SCROLL_MASK);
 		g_signal_connect (notebook1, "scroll-event", G_CALLBACK (on_scrolltabs), NULL);
@@ -1737,7 +1858,7 @@ static void create_notebook_tab (GtkWidget *notebook, gchar *text, gboolean clos
 				gtk_widget_get_style_context (GTK_WIDGET (btn)),
 				GTK_STYLE_PROVIDER (provider),
 				GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-		#else
+		#else // GTK 2
 			btn = gtk_button_new ();
 			gtk_button_set_image (GTK_BUTTON (btn), gtk_image_new_from_icon_name ("gtk-close", GTK_ICON_SIZE_MENU));
 			gtk_button_set_relief (GTK_BUTTON (btn), GTK_RELIEF_NONE);
@@ -1770,14 +1891,14 @@ static void create_notebook_tab (GtkWidget *notebook, gchar *text, gboolean clos
 	gtk_notebook_set_tab_reorderable (GTK_NOTEBOOK (notebook), content, TRUE);
 
 	#if GTK_CHECK_VERSION (4,0,0)
-		// gtk-scroll-tabs for GTK 4.x
+		// gtk-scroll-tabs for GTK 4
 		GtkEventController *event;
 		event = gtk_event_controller_scroll_new (GTK_EVENT_CONTROLLER_SCROLL_BOTH_AXES | GTK_EVENT_CONTROLLER_SCROLL_DISCRETE);
 		g_signal_connect (event, "scroll", G_CALLBACK (on_scrolltabs), notebook);
 		gtk_widget_add_controller (gtk_widget_get_parent (headbtn), event);
 	#elif GTK_CHECK_VERSION (3,4,0)
 		if (close) {
-			// gtk-scroll-tabs (close button) for GTK 3.4 to 3.24
+			// gtk-scroll-tabs (close button) for GTK 3 (3.4..3.24)
 			// with or without gtk3-classic https://github.com/lah7/gtk3-classic/commit/66b65775822c46e07f5b2f30036010d06dbcbad4
 			gtk_widget_add_events (btn, GDK_SCROLL_MASK);
 			g_signal_connect (btn, "scroll-event", G_CALLBACK (on_scrolltabs), NULL);
@@ -2059,12 +2180,8 @@ static void create_treview (GtkWidget *root) {
 		G_GNUC_END_IGNORE_DEPRECATIONS
 	#endif
 
-	// colors
-	#if GTK_CHECK_VERSION (4,0,0)
-		// gtk_tree_view_set_grid_lines (GTK_TREE_VIEW (view), GTK_TREE_VIEW_GRID_LINES_VERTICAL);
-	#elif GTK_CHECK_VERSION (3,19,0)
-		// with gtk3-classic https://github.com/lah7/gtk3-classic/blob/master/treeview__alternating_row_colours.patch
-	#else
+	// colors for lines before GTK 3.19, after with gtk3-classic/gtk4-classic
+	#if !GTK_CHECK_VERSION (3,19,0)
 		gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (view), TRUE);
 	#endif
 
@@ -2074,7 +2191,7 @@ static void create_treview (GtkWidget *root) {
 		const gchar *config = g_getenv ("GTK_OVERLAY_SCROLLING");
 		if (config && (strcmp (config, "0") == 0))
 			gtk_scrolled_window_set_overlay_scrolling (GTK_SCROLLED_WINDOW (scrolled_window), FALSE);
-	#else
+	#else // GTK 2 & 3
 		scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 		gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolled_window), GTK_SHADOW_IN);
 	#endif
@@ -2085,7 +2202,7 @@ static void create_treview (GtkWidget *root) {
 
 	#if GTK_CHECK_VERSION (4,0,0)
 		gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled_window), view);
-	#else
+	#else // GTK 2 & 3
 		gtk_container_add (GTK_CONTAINER (scrolled_window), view);
 	#endif
 
@@ -2098,7 +2215,7 @@ static GtkWidget* create_horizontal_scale (gdouble value, gboolean draw, gboolea
 
 	#if GTK_CHECK_VERSION (3,0,0)
 		scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
-	#else
+	#else // GTK 2
 		scale = gtk_hscale_new_with_range (0, 100, 1);
 	#endif
 
@@ -2117,7 +2234,7 @@ static GtkWidget* create_vertical_scale (gdouble value, gboolean draw, gboolean 
 
 	#if GTK_CHECK_VERSION (3,0,0)
 		scale = gtk_scale_new_with_range (GTK_ORIENTATION_VERTICAL, 0, 100, 1);
-	#else
+	#else // GTK 2
 		scale = gtk_vscale_new_with_range (0, 100, 1);
 	#endif
 
@@ -2131,7 +2248,7 @@ static GtkWidget* create_vertical_scale (gdouble value, gboolean draw, gboolean 
 }
 
 
-// traditional menu (gtk4 or gtk3/gtk2)
+// traditional menu (GTK 4 or GTK 2 & 3)
 
 #if GTK_CHECK_VERSION (4,0,0)
 
@@ -2314,17 +2431,17 @@ static GMenuItem* create_menuitem (GtkApplication *app, GMenu *menu, gchar *text
 
 static void accels_change (GtkEventControllerKey *controller, guint keyval, guint keycode, GdkModifierType state) {
 
-	// gtk-can-change-accels for GTK 4.x
+	// gtk-can-change-accels for GTK 4
 	// @todo
 }
 
 static void accels_save () {
 
-	// gtk-can-change-accels for GTK 4.x
+	// gtk-can-change-accels for GTK 4
 	// @todo
 }
 
-#else
+#else // GTK 2 & 3
 
 static void create_traditional_menubar (GtkWidget *root) {
 
@@ -2442,7 +2559,7 @@ static void create_traditional_menubar (GtkWidget *root) {
 			gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (menuitem), TRUE);
 		g_signal_connect_swapped (menuitem, "activate", G_CALLBACK (update_text_direction), (gpointer) GTK_TEXT_DIR_RTL);
 
-	// gtk-can-change-accels for GTK 3.x (3.2/3.24)
+	// gtk-can-change-accels for GTK 3 (3.2..3.24)
 	accels_load ();
 	g_object_set (gtk_settings_get_default (), "gtk-can-change-accels", FALSE, NULL);
 }
@@ -2456,7 +2573,7 @@ static GtkWidget* create_menu (GtkWidget *root, gchar *text) {
 	gtk_menu_item_set_submenu (GTK_MENU_ITEM (menuitem), menu);
 	gtk_menu_shell_append (GTK_MENU_SHELL (root), menuitem);
 
-	// gtk-can-change-accels for GTK 3.x (3.2/3.24)
+	// gtk-can-change-accels for GTK 3 (3.2..3.24)
 	gtk_widget_set_events (menu, GDK_KEY_RELEASE_MASK);
 	g_signal_connect (menu, "key-release-event", G_CALLBACK (accels_change), NULL);
 
@@ -2471,7 +2588,7 @@ static GtkWidget* create_menuitem_tearoff (GtkWidget *menu) {
 		menuitem = gtk_tearoff_menu_item_new ();
 		gtk_style_context_add_class (gtk_widget_get_style_context (menuitem), "tearoff");
 		gtk_menu_shell_append (GTK_MENU_SHELL (menu), menuitem);
-	#else
+	#else // GTK 2
 		menuitem = gtk_tearoff_menu_item_new ();
 		gtk_menu_shell_append (GTK_MENU_SHELL (menu), menuitem);
 	#endif
@@ -2524,7 +2641,7 @@ static GtkWidget* create_menuitem (GtkWidget *menu, gchar *text, gboolean disabl
 	if (function)
 		g_signal_connect (menuitem, "activate", function, NULL);
 
-	// gtk-can-change-accels for GTK 3.x (3.2/3.24)
+	// gtk-can-change-accels for GTK 3 (3.2..3.24)
 	g_signal_connect (menuitem, "select", G_CALLBACK (accels_select), NULL);
 	g_signal_connect (menuitem, "deselect", G_CALLBACK (accels_deselect), NULL);
 
@@ -2533,7 +2650,7 @@ static GtkWidget* create_menuitem (GtkWidget *menu, gchar *text, gboolean disabl
 
 static void accels_load () {
 
-	// gtk-can-change-accels for GTK 3.x (3.2/3.24)
+	// gtk-can-change-accels for GTK 3 (3.2..3.24)
 
 	gchar *path = g_build_filename ("/", g_getenv ("HOME"), ".awf-gtk-accels", NULL);
 	if (g_file_test (path, G_FILE_TEST_IS_REGULAR))
@@ -2543,21 +2660,21 @@ static void accels_load () {
 
 static void accels_select (GtkWidget *widget) {
 
-	// gtk-can-change-accels for GTK 3.x (3.2/3.24)
+	// gtk-can-change-accels for GTK 3 (3.2..3.24)
 	current_menuitem = widget;
 }
 
 static void accels_deselect (GtkWidget *widget) {
 
-	// gtk-can-change-accels for GTK 3.x (3.2/3.24)
+	// gtk-can-change-accels for GTK 3 (3.2..3.24)
 	if (current_menuitem == widget)
 		current_menuitem = NULL;
 }
 
 static void accels_change (GtkWidget *widget, GdkEventKey *event) {
 
-	// gtk-can-change-accels for GTK 3.x (3.2/3.24)
-	// https://gitlab.gnome.org/GNOME/gtk/-/commit/2d79334bb069224966b3dcd8456967c9800e8fd0
+	// gtk-can-change-accels for GTK 3 (3.2..3.24)
+	// @see https://gitlab.gnome.org/GNOME/gtk/-/commit/2d79334bb069224966b3dcd8456967c9800e8fd0
 	if (!current_menuitem)
 		return;
 
@@ -2596,7 +2713,7 @@ static void accels_change (GtkWidget *widget, GdkEventKey *event) {
 
 static void accels_save () {
 
-	// gtk-can-change-accels for GTK 3.x (3.2/3.24)
+	// gtk-can-change-accels for GTK 3 (3.2..3.24)
 	if (must_save_accels) {
 		gchar *path = g_build_filename ("/", g_getenv ("HOME"), ".awf-gtk-accels", NULL);
 		gtk_accel_map_save (path);
@@ -2626,7 +2743,7 @@ static void dialog_open () {
 		gtk_window_set_icon_name (GTK_WINDOW (dialog), GETTEXT_PACKAGE);
 		gtk_widget_set_visible (dialog, TRUE);
 		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
-	#else
+	#else // GTK 2 & 3
 		GtkWidget *dialog = gtk_file_chooser_dialog_new (
 			"GtkFileChooserDialog",
 			GTK_WINDOW (window),
@@ -2679,7 +2796,7 @@ static void dialog_save () {
 		gtk_window_set_icon_name (GTK_WINDOW (dialog), GETTEXT_PACKAGE);
 		gtk_widget_set_visible (dialog, TRUE);
 		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
-	#else
+	#else // GTK 2 & 3
 		GtkWidget *dialog = gtk_file_chooser_dialog_new (
 			"GtkFileChooserDialog",
 			GTK_WINDOW (window),
@@ -2713,7 +2830,7 @@ static void dialog_message () {
 	#if GTK_CHECK_VERSION (4,0,0)
 		gtk_widget_set_visible (dialog, TRUE);
 		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
-	#else
+	#else // GTK 2 & 3
 		gtk_dialog_run (GTK_DIALOG (dialog));
 		gtk_widget_destroy (dialog);
 	#endif
@@ -2727,7 +2844,7 @@ static void dialog_page_setup () {
 	#if GTK_CHECK_VERSION (4,0,0)
 		gtk_widget_set_visible (dialog, TRUE);
 		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
-	#else
+	#else // GTK 2 & 3
 		gtk_dialog_run (GTK_DIALOG (dialog));
 		gtk_widget_destroy (dialog);
 	#endif
@@ -2741,7 +2858,7 @@ static void dialog_print () {
 	#if GTK_CHECK_VERSION (4,0,0)
 		gtk_widget_set_visible (dialog, TRUE);
 		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
-	#else
+	#else // GTK 2 & 3
 		gtk_dialog_run (GTK_DIALOG (dialog));
 		gtk_widget_destroy (dialog);
 	#endif
@@ -2767,7 +2884,7 @@ static void dialog_about () {
 				pango_version_string ())
 		),
 		"website", "https://github.com/luigifab/awf-extended",
-		"copyright", "Copyright © 2020-2023 Fabrice Creuzot (luigifab)\nCopyright © 2011-2017 Valère Monseur (valr)",
+		"copyright", "Copyright © 2020-2024 Fabrice Creuzot (luigifab)\nCopyright © 2011-2017 Valère Monseur (valr)",
 		"icon-name", GETTEXT_PACKAGE,
 		"logo-icon-name", GETTEXT_PACKAGE,
 		"license", "A widget factory is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.",
@@ -2828,7 +2945,7 @@ static void dialog_calendar () {
 		add_to (GTK_BOX (vbox), calendar, FALSE, FALSE, 0, 0);
 
 		G_GNUC_END_IGNORE_DEPRECATIONS
-	#else
+	#else // GTK 2 & 3
 		infobar = gtk_info_bar_new_with_buttons ("gtk-ok", GTK_RESPONSE_OK, NULL);
 		gtk_info_bar_set_message_type (GTK_INFO_BAR (infobar), GTK_MESSAGE_INFO);
 		label = gtk_label_new (_app("This is an info bar."));
@@ -2864,12 +2981,12 @@ static void dialog_calendar () {
 	add_to (GTK_BOX (area), vbox, TRUE, TRUE, 5, 5);
 
 	#if GTK_CHECK_VERSION (4,0,0)
-		// https://blog.gtk.org/2022/10/30/on-deprecations/
+		// @see https://blog.gtk.org/2022/10/30/on-deprecations/
 		G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 		gtk_dialog_add_button (GTK_DIALOG (dialog), _gtk("_Cancel"), 0);
 		gtk_dialog_add_button (GTK_DIALOG (dialog), _gtk("_OK"), 0);
 		G_GNUC_END_IGNORE_DEPRECATIONS
-	#else
+	#else // GTK 2 & 3
 		gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-cancel", 0);
 		gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-ok", 0);
 		gtk_widget_show_all (dialog);
@@ -2882,7 +2999,7 @@ static void dialog_calendar () {
 	#if GTK_CHECK_VERSION (4,0,0)
 		gtk_widget_set_visible (dialog, TRUE);
 		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
-	#else
+	#else // GTK 2 & 3
 		gtk_dialog_run (GTK_DIALOG (dialog));
 		gtk_widget_destroy (dialog);
 	#endif
@@ -3061,12 +3178,12 @@ static void dialog_scales (int position) {
 			add_to (GTK_BOX (vbox3), scale12h, FALSE, FALSE, 5, 5);
 
 	#if GTK_CHECK_VERSION (4,0,0)
-		// https://blog.gtk.org/2022/10/30/on-deprecations/
+		// @see https://blog.gtk.org/2022/10/30/on-deprecations/
 		G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 		gtk_dialog_add_button (GTK_DIALOG (dialog), _gtk("_Cancel"), 0);
 		gtk_dialog_add_button (GTK_DIALOG (dialog), _gtk("_OK"), 0);
 		G_GNUC_END_IGNORE_DEPRECATIONS
-	#else
+	#else // GTK 2 & 3
 		gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-cancel", 0);
 		gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-ok", 0);
 		gtk_widget_show_all (dialog);
@@ -3079,23 +3196,23 @@ static void dialog_scales (int position) {
 	#if GTK_CHECK_VERSION (4,0,0)
 		gtk_widget_set_visible (dialog, TRUE);
 		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
-	#else
+	#else // GTK 2 & 3
 		gtk_dialog_run (GTK_DIALOG (dialog));
 		gtk_widget_destroy (dialog);
 	#endif
 }
 
 
-// scroll tabs (gtk4 or gtk3)
-// https://github.com/mate-desktop/mate-control-center/blob/master/capplets/common/capplet-util.c
+// scroll tabs (GTK 4 or GTK 3)
+// @see https://github.com/mate-desktop/mate-control-center/blob/master/capplets/common/capplet-util.c
 // for on_scrolltabs source function is capplet_dialog_page_scroll_event_cb
-// of mate-appearance-properties from mate-control-center, GNU GPL 2+
+// of mate-appearance-properties from mate-control-center, GNU GPL 2.0+
 
 #if GTK_CHECK_VERSION (4,0,0)
 
 static gboolean on_scrolltabs (GtkEventControllerScroll *event, double dx, double dy, GtkWidget *widget) {
 
-	// gtk-scroll-tabs for GTK 4.x
+	// gtk-scroll-tabs for GTK 4
 	GtkWidget *child, *event_widget, *action_widget;
 	GtkNotebook *notebook;
 
@@ -3133,7 +3250,7 @@ static gboolean on_scrolltabs (GtkEventControllerScroll *event, double dx, doubl
 
 static gboolean on_scrolltabs (GtkWidget *widget, GdkEventScroll *event) {
 
-	// gtk-scroll-tabs for GTK 3.4 to 3.24
+	// gtk-scroll-tabs for GTK 3 (3.4..3.24)
 	GtkWidget *child, *event_widget, *action_widget;
 	GtkNotebook *notebook;
 

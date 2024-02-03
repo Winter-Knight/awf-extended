@@ -4,33 +4,33 @@ A widget factory is a theme preview application for GTK. It displays the various
 
 ## Screenshots
 
-GTK 2\
-[![Preview with GTK 2 - Main window](images/thumbs/gtk2.png?raw=true)](images/gtk2.png?raw=true)
-[![Preview with GTK 2 - Menu](images/thumbs/gtk2-menu.png?raw=true)](images/gtk2-menu.png?raw=true)
-[![Preview with GTK 2 - RTL - Main window](images/thumbs/gtk2-rtl.png?raw=true)](images/gtk2-rtl.png?raw=true)
-[![Preview with GTK 2 - RTL - Menu](images/thumbs/gtk2-rtl-menu.png?raw=true)](images/gtk2-rtl-menu.png?raw=true)
+GTK 2.24 (Pango 1.51)\
+[<img alt="Preview with GTK 2 - Main window" src="images/thumbs/gtk2.png?raw=true" width="200" />](images/gtk2.png?raw=true)
+[<img alt="Preview with GTK 2 - Menu" src="images/thumbs/gtk2-menu.png?raw=true" width="200" />](images/gtk2-menu.png?raw=true)
+[<img alt="Preview with GTK 2 - RTL - Main window" src="images/thumbs/gtk2-rtl.png?raw=true" width="200" />](images/gtk2-rtl.png?raw=true)
+[<img alt="Preview with GTK 2 - RTL - Menu" src="images/thumbs/gtk2-rtl-menu.png?raw=true" width="200" />](images/gtk2-rtl-menu.png?raw=true)
 
-GTK 3\
-[![Preview with GTK 3 - Main window](images/thumbs/gtk3.png?raw=true)](images/gtk3.png?raw=true)
-[![Preview with GTK 3 - Menu](images/thumbs/gtk3-menu.png?raw=true)](images/gtk3-menu.png?raw=true)
-[![Preview with GTK 3 - RTL - Main window](images/thumbs/gtk3-rtl.png?raw=true)](images/gtk3-rtl.png?raw=true)
-[![Preview with GTK 3 - RTL - Menu](images/thumbs/gtk3-rtl-menu.png?raw=true)](images/gtk3-rtl-menu.png?raw=true)
+GTK 3.24 (Pango 1.51)\
+[<img alt="Preview with GTK 3 - Main window" src="images/thumbs/gtk3.png?raw=true" width="200" />](images/gtk3.png?raw=true)
+[<img alt="Preview with GTK 3 - Menu" src="images/thumbs/gtk3-menu.png?raw=true" width="200" />](images/gtk3-menu.png?raw=true)
+[<img alt="Preview with GTK 3 - RTL - Main window" src="images/thumbs/gtk3-rtl.png?raw=true" width="200" />](images/gtk3-rtl.png?raw=true)
+[<img alt="Preview with GTK 3 - RTL - Menu" src="images/thumbs/gtk3-rtl-menu.png?raw=true" width="200" />](images/gtk3-rtl-menu.png?raw=true)
 
-GTK 4\
-[![Preview with GTK 4 - Main window](images/thumbs/gtk4.png?raw=true)](images/gtk4.png?raw=true)
-[![Preview with GTK 4 - Menu](images/thumbs/gtk4-menu.png?raw=true)](images/gtk4-menu.png?raw=true)
-[![Preview with GTK 4 - RTL - Main window](images/thumbs/gtk4-rtl.png?raw=true)](images/gtk4-rtl.png?raw=true)
-[![Preview with GTK 4 - RTL - Menu](images/thumbs/gtk4-rtl-menu.png?raw=true)](images/gtk4-rtl-menu.png?raw=true)
+GTK 4.12 (Pango 1.51)\
+[<img alt="Preview with GTK 4 - Main window" src="images/thumbs/gtk4.png?raw=true" width="200" />](images/gtk4.png?raw=true)
+[<img alt="Preview with GTK 4 - Menu" src="images/thumbs/gtk4-menu.png?raw=true" width="200" />](images/gtk4-menu.png?raw=true)
+[<img alt="Preview with GTK 4 - RTL - Main window" src="images/thumbs/gtk4-rtl.png?raw=true" width="200" />](images/gtk4-rtl.png?raw=true)
+[<img alt="Preview with GTK 4 - RTL - Menu" src="images/thumbs/gtk4-rtl-menu.png?raw=true" width="200" />](images/gtk4-rtl-menu.png?raw=true)
 
-Theme used for the screenshots is available [here](https://github.com/luigifab/human-theme). For screenshots: Pango 1.42 with GTK 2.24 and 3.24.23-classic, Pango 1.50 with GTK 4.8.
+Theme used for the screenshots is available [here](https://github.com/luigifab/human-theme).
 
 ## Tricks
 
 * Some options are available from command line (read `-h` or man page).
-* Options menu allow to run some standard dialogs.
+* Options menu allow to display some standard dialogs.
 * System and user themes menu allow to set current theme.
 * Text direction menu allow to change text direction (LTR/RTL).
-* Plus/minus toolbar buttons allow to show or hide: notebooks arrows, text and marks on progress bars and scales.
+* Plus/minus toolbar buttons allow to show or hide: notebooks arrows, marks on progress bars and scales...
 * Refresh toolbar button and refresh menu item allow to reload the current theme (like `SIGHUP` signal).
 * Menu keyboard shortcuts can be updated on hover (GTK 2.24 and 3.x, *gtk-can-change-accels*).
 * Notebooks tabs are scrollable (GTK 3.x and 4.x, *gtk-scroll-tabs*, like with GTK 2.24).
@@ -38,7 +38,7 @@ Theme used for the screenshots is available [here](https://github.com/luigifab/h
 
 ## Installation
 
-It require **GTK 2.24+** or **GTK 3.0+** *(including 3.24)* or **GTK 4.0+**, and *GLIB 2.28+*.
+It require **GTK 2.24** or **GTK 3.0+** *(including 3.24)* or **GTK 4.0+** *(including 4.12)*, and *GLIB 2.28+*.
 
 #### Installation for Debian and Ubuntu
 
@@ -55,14 +55,16 @@ It require **GTK 2.24+** or **GTK 3.0+** *(including 3.24)* or **GTK 4.0+**, and
 #### Building from source
 
 * To compile the program with all major GTK versions available, run: `build.sh`
-* To compile the program and create DEB packages for Debian and Ubuntu, run: `debian-gtkx/deb.sh`
-* To compile the program and create RPM package for Fedora, run: `fedora-gtkx/rpm.sh`
-* To compile the program and create RPM package for openSUSE, run: `opensuse-gtkx/rpm.sh`
+* To compile the program and create DEB packages for Debian and Ubuntu, run: `debian[-gtkx]/deb.sh`
+* To compile the program and create RPM packages for Fedora, run: `fedora/rpm-gtkx.sh`
+* To compile the program and create RPM packages for openSUSE, run: `opensuse/rpm-gtkx.sh`
+* To compile the program and create ZST packages for Arch Linux, run: `archlinux/zst-gtkx.sh`
 
 #### Alternative installation for Debian and Ubuntu
 
 ```bash
-# https://launchpad.net/~luigifab/+archive/ubuntu/packages
+# PPA: https://launchpad.net/~luigifab/+archive/ubuntu/packages
+# with Debian 12+ you can use mantic+ instead of focal (https://unix.stackexchange.com/a/669008/364800)
 sudo add-apt-repository ppa:luigifab/packages
 sudo apt update
 sudo apt install awf-gtk2 awf-gtk3 awf-gtk4
@@ -96,10 +98,12 @@ ls ~/.themes/yourtheme/gtk-3*/*.css | entr killall -s SIGHUP awf-gtk3
 
 ## Copyright
 
-- Current version: 2.7.0 (06/06/2023)
-- Compatibility: GTK 2.24 / 3.0..3.24 / 4.0 / 4.2 / 4.4 / 4.6 / 4.8 / 4.10
-- Translations: English (en), French (fr)
+- Current version: 2.8.0 (02/02/2024)
+- Compatibility: GTK 2.24 / 3.0..3.24 / 4.0..4.12
 - Links: [luigifab.fr](https://www.luigifab.fr/gtk/awf-extended) - [github.com](https://github.com/luigifab/awf-extended)\
+[Arch Linux awf-gtk2.zst](https://aur.archlinux.org/packages/awf-gtk2)
+; [Arch Linux awf-gtk3.zst](https://aur.archlinux.org/packages/awf-gtk3)
+; [Arch Linux awf-gtk4.zst](https://aur.archlinux.org/packages/awf-gtk4)\
 [Debian awf-gtk3.deb](https://packages.debian.org/awf-gtk)
 ; [Debian awf-gtk4.deb](https://packages.debian.org/awf-gtk)\
 [Fedora awf-gtk2.rpm](https://src.fedoraproject.org/rpms/awf-gtk2)
@@ -114,6 +118,10 @@ ls ~/.themes/yourtheme/gtk-3*/*.css | entr killall -s SIGHUP awf-gtk3
 
 This program is provided under the terms of the **GNU GPLv3+** license.\
 If you like, take some of your time to improve the translations, go to https://bit.ly/2HyCCEc.
+
+## Packages in official distros repositories
+
+[![Packages status](https://repology.org/badge/vertical-allrepos/awf-widget-factory.svg?header=awf-gtk&minversion=2.0.0)](https://repology.org/project/awf-widget-factory/versions)
 
 ## Credits
 

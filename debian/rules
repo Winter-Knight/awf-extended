@@ -13,6 +13,7 @@ override_dh_update_autotools_config:
 	touch ChangeLog
 	mv LICENSE COPYING
 	for gtk in "gtk3" "gtk4"; do \
+	#for gtk in "gtk2" "gtk3" "gtk4"; do \
 		cp -ar icons/ icons-$$gtk/; \
 		for file in icons-$$gtk/*/*/awf.png; do mv $$file `dirname $$file`/awf-$$gtk.png; done; \
 		for file in icons-$$gtk/*/*/awf.svg; do mv $$file `dirname $$file`/awf-$$gtk.svg; done; \
