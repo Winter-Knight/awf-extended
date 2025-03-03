@@ -1,4 +1,0 @@
-applications/awf-gtk3.desktop usr/share/applications
-icons-gtk3/*                  usr/share/icons/hicolor
-locale-awf-gtk3/*             usr/share/locale
-usr/bin/awf-gtk3              usr/bin

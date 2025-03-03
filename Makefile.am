@@ -1,1 +1,2 @@
+MAKEFLAGS = --silent
 SUBDIRS = src

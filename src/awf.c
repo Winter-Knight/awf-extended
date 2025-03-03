@@ -1,8 +1,8 @@
 /**
  * Forked  M/10/03/2020
- * Updated D/03/12/2023
+ * Updated D/02/03/2025
  *
- * Copyright 2020-2024 | Fabrice Creuzot (luigifab) <code~luigifab~fr>
+ * Copyright 2020-2025 | Fabrice Creuzot (luigifab) <code~luigifab~fr>
  * https://github.com/luigifab/awf-extended
  * https://www.luigifab.fr/gtk/awf-extended
  *
@@ -31,14 +31,16 @@
  *  msgfmt src/po/fr.po -o src/fr/LC_MESSAGES/awf.mo
  *
  * Tested with build.sh (via VirtualBox 7.0) with:
- *  Debian Testing 64               (1536 MB) GTK 2.24/3.24/4.12 + GLIB 2.78 + Pango 1.51
- *  Fedora Rawhide 64               (1536 MB) GTK 2.24/3.24/4.12 + GLIB 2.78 + Pango 1.51
- *  Ubuntu 23.10 Mantic Minotaur 64 (2176 MB) GTK 2.24/3.24/4.12 + GLIB 2.78 + Pango 1.51
- *  Ubuntu 23.04 Lunar Lobster 64   (2176 MB) GTK 2.24/3.24/4.10 + GLIB 2.76 + Pango 1.50
- *  Ubuntu 22.10 Kinetic Kudu 64    (2176 MB) GTK 2.24/3.24/4.8 + GLIB 2.74 + Pango 1.50
- *  Ubuntu 22.04 Jammy Jellyfish 64 (2176 MB) GTK 2.24/3.24/4.6 + GLIB 2.72 + Pango 1.50
- *  Ubuntu 21.10 Impish Indri 64    (2176 MB) GTK 2.24/3.24/4.4 + GLIB 2.68 + Pango 1.48
- *  Ubuntu 21.04 Hirsute Hippo 64   (2176 MB) GTK 2.24/3.24/4.0 + GLIB 2.68 + Pango 1.48
+ *  Debian Testing 64                   (1536 MB) GTK 2.24/3.24/4.17 + GLIB 2.83 + Pango 1.56
+ *  Fedora Rawhide 64                   (1536 MB) GTK 2.24/3.24/4.17 + GLIB 2.83 + Pango 1.56
+ *  Ubuntu 24.10 Oracular Oriole 64     (4096 MB) GTK 2.24/3.24/4.16 + GLIB 2.82 + Pango 1.54
+ *  Ubuntu 24.04 Noble Numbat 64        (4096 MB) GTK 2.24/3.24/4.14 + GLIB 2.80 + Pango 1.52
+ *  Ubuntu 23.10 Mantic Minotaur 64     (3072 MB) GTK 2.24/3.24/4.12 + GLIB 2.78 + Pango 1.51
+ *  Ubuntu 23.04 Lunar Lobster 64       (3072 MB) GTK 2.24/3.24/4.10 + GLIB 2.76 + Pango 1.50
+ *  Ubuntu 22.10 Kinetic Kudu 64        (2176 MB) GTK 2.24/3.24/4.8  + GLIB 2.74 + Pango 1.50
+ *  Ubuntu 22.04 Jammy Jellyfish 64     (2176 MB) GTK 2.24/3.24/4.6  + GLIB 2.72 + Pango 1.50
+ *  Ubuntu 21.10 Impish Indri 64        (2176 MB) GTK 2.24/3.24/4.4  + GLIB 2.68 + Pango 1.48
+ *  Ubuntu 21.04 Hirsute Hippo 64       (2176 MB) GTK 2.24/3.24/4.0  + GLIB 2.68 + Pango 1.48
  *  Ubuntu 17.04 Zesty Zapus 32         (1536 MB) GTK 2.24/3.22 + GLIB 2.52 + Pango 1.40
  *  Ubuntu 16.10 Yakkety Yak 32         (1536 MB) GTK 2.24/3.20 + GLIB 2.50 + Pango 1.40
  *  Ubuntu 16.04 Xenial Xerus 32        (1536 MB) GTK 2.24/3.18 + GLIB 2.48 + Pango 1.38
@@ -171,8 +173,8 @@ static void update_statusbar (gchar *message);
 static void update_values (GtkRange *range);
 static void update_widgets ();
 static void update_marks (GtkScale *scale, gboolean value, int position);
-static gboolean on_sighup ();
-static gboolean take_screenshot ();
+static gboolean on_sighup (void *data);
+static gboolean take_screenshot (void *data);
 static void create_window (gpointer app);
 static void create_widgets (GtkWidget *root);
 static void add_to (GtkBox *box, GtkWidget *widget, gboolean fill, gboolean expand, guint padding, guint spacing);
@@ -226,6 +228,7 @@ static void dialog_scales_bottom ();
 static void dialog_scales_right ();
 static void dialog_scales_left ();
 static void dialog_scales (int position);
+static void show_dialog (GtkWidget *dialog);
 #if GTK_CHECK_VERSION (4,0,0)
 static gboolean on_scrolltabs (GtkEventControllerScroll *event, double dx, double dy, GtkWidget *widget);
 #elif GTK_CHECK_VERSION (3,4,0)
@@ -406,7 +409,7 @@ static void update_text_direction (int direction) {
 		current_direction = GTK_TEXT_DIR_LTR;
 		gtk_widget_set_default_direction (current_direction);
 
-		#if GTK_CHECK_VERSION (3,20,0) && !GTK_CHECK_VERSION (4,0,0)
+		#if GTK_CHECK_VERSION (3,20,0) && !GTK_CHECK_VERSION (4,0,0) && !GTK_CHECK_VERSION (5,0,0)
 			gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook3), GTK_POS_LEFT);
 			gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook4), GTK_POS_RIGHT);
 		#endif
@@ -419,7 +422,7 @@ static void update_text_direction (int direction) {
 	}
 	else if (((direction == GTK_TEXT_DIR_RTL) || (direction == 2)) && (gtk_widget_get_direction (window) != GTK_TEXT_DIR_RTL)) {
 
-		#if GTK_CHECK_VERSION (3,20,0) && !GTK_CHECK_VERSION (4,0,0)
+		#if GTK_CHECK_VERSION (3,20,0) && !GTK_CHECK_VERSION (4,0,0) && !GTK_CHECK_VERSION (5,0,0)
 			gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook3), GTK_POS_RIGHT);
 			gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook4), GTK_POS_LEFT);
 		#endif
@@ -616,14 +619,24 @@ static void update_widgets () {
 
 	// show progressbar in toolbar and statusbar only when [+] toolbar button is NOT checked
 	if (toggle) {
-		gtk_widget_hide (progressbar8);
-		gtk_widget_hide (progressbar9);
+		#if GTK_CHECK_VERSION (4,0,0)
+			gtk_widget_set_visible (progressbar8, FALSE);
+			gtk_widget_set_visible (progressbar9, FALSE);
+		#else // GTK 2 & 3
+			gtk_widget_hide (progressbar8);
+			gtk_widget_hide (progressbar9);
+		#endif
 	}
 	else {
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar8), 0.0);
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar9), 0.0);
-		gtk_widget_show (progressbar8);
-		gtk_widget_show (progressbar9);
+		#if GTK_CHECK_VERSION (4,0,0)
+			gtk_widget_set_visible (progressbar8, TRUE);
+			gtk_widget_set_visible (progressbar9, TRUE);
+		#else // GTK 2 & 3
+			gtk_widget_show (progressbar8);
+			gtk_widget_show (progressbar9);
+		#endif
 	}
 
 	gtk_scale_clear_marks (GTK_SCALE (scale5));
@@ -658,18 +671,18 @@ static void update_marks (GtkScale *scale, gboolean value, int position) {
 	}
 }
 
-static gboolean on_sighup () {
+static gboolean on_sighup (void *data) {
 
 	update_theme ("refresh");
 
-	#if !defined (G_SOURCE_CONTINUE)
-		return TRUE; // glib < 2.32
-	#else
+	#if defined (G_SOURCE_CONTINUE)
 		return G_SOURCE_CONTINUE;
+	#else
+		return TRUE; // glib < 2.32
 	#endif
 }
 
-static gboolean take_screenshot () {
+static gboolean take_screenshot (void *data) {
 
 	GdkPixbuf *image = NULL;
 	int width = 0, height = 0;
@@ -769,13 +782,21 @@ static void create_window (gpointer app) {
 			progressbar8 = gtk_progress_bar_new ();
 			gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar8), 0);
 			gtk_orientable_set_orientation (GTK_ORIENTABLE (progressbar8), GTK_ORIENTATION_HORIZONTAL);
-			gtk_widget_hide (progressbar8);
+			#if GTK_CHECK_VERSION (3,0,0)
+				gtk_widget_set_visible (progressbar8, FALSE);
+			#else
+				gtk_widget_hide (progressbar8);
+			#endif
 
 			progressbar9 = gtk_progress_bar_new ();
 			gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar9), 0);
 			gtk_orientable_set_orientation (GTK_ORIENTABLE (progressbar9), GTK_ORIENTATION_HORIZONTAL);
-			gtk_widget_hide (progressbar9);
-		#else // GTK 2 & 3
+			#if GTK_CHECK_VERSION (3,0,0)
+				gtk_widget_set_visible (progressbar9, FALSE);
+			#else
+				gtk_widget_hide (progressbar9);
+			#endif
+		#else // GTK 2
 			progressbar8 = gtk_progress_bar_new ();
 			gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar8), 0);
 			gtk_progress_bar_set_orientation (GTK_PROGRESS_BAR (progressbar8), GTK_PROGRESS_LEFT_TO_RIGHT);
@@ -806,6 +827,8 @@ static void create_window (gpointer app) {
 		gtk_widget_add_css_class (toolbar, "primary-toolbar");
 		gtk_widget_set_visible (window, TRUE);
 		add_progressbar_statusbar_toolbar ();
+		// lol
+		gtk_window_set_default_size (GTK_WINDOW (window), 50, 50);
 	#elif GTK_CHECK_VERSION (3,4,0)
 		gtk_style_context_add_class (gtk_widget_get_style_context (toolbar), "primary-toolbar");
 		gtk_widget_show_all (window);
@@ -1005,7 +1028,6 @@ static void add_progressbar_statusbar_toolbar () {
 		gtk_toolbar_insert (GTK_TOOLBAR (toolbar), item, -1);
 		gtk_widget_show (GTK_WIDGET (item));
 
-		// @todo, reduce height of progressbar
 		item = gtk_tool_item_new ();
 		gtk_container_add (GTK_CONTAINER (item), progressbar8);
 		gtk_toolbar_insert (GTK_TOOLBAR (toolbar), item, -1);
@@ -1111,6 +1133,9 @@ static void create_toolbar (GtkWidget *root) {
 	#else // GTK 2 & 3
 		GtkWidget *icon1, *icon2, *icon3, *icon4, *icon5, *icon6, *icon7, *menu;
 
+		// @todo option command line?
+		gtk_toolbar_set_style (GTK_TOOLBAR (toolbar), GTK_TOOLBAR_ICONS);
+
 		icon1 = GTK_WIDGET (gtk_menu_tool_button_new (NULL, NULL));
 		gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (icon1), "gtk-open");
 		g_signal_connect (icon1, "clicked", G_CALLBACK (dialog_open), NULL);
@@ -1162,26 +1187,47 @@ static void create_combos_entries (GtkWidget *root) {
 
 	GtkWidget *combo1, *combo2, *combo3, *combo4, *entry1, *entry2, *entry3, *entry4;
 
-	combo1 = gtk_combo_box_text_new_with_entry ();
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo1), "Combo box entry 1");
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo1), "Combo box entry 2");
-	gtk_combo_box_set_active (GTK_COMBO_BOX (combo1), 0);
+	//if GTK_CHECK_VERSION (4,10,0)
+	//	combo1 = gtk_drop_down_new_from_strings ((const char * const[]) { "Combo box entry 1", "Combo box entry 2", NULL });
+	//	//gtk_drop_down_set_enable_search (GTK_DROP_DOWN (combo1), TRUE);
+	//	gtk_drop_down_set_selected (GTK_DROP_DOWN (combo1), 0);
+	//else
+		combo1 = gtk_combo_box_text_new_with_entry ();
+		gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo1), "Combo box entry 1");
+		gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo1), "Combo box entry 2");
+		gtk_combo_box_set_active (GTK_COMBO_BOX (combo1), 0);
+	//endif
 
-	combo2 = gtk_combo_box_text_new_with_entry ();
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo2), "Combo box entry 1");
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo2), "Combo box entry 2");
-	gtk_combo_box_set_active (GTK_COMBO_BOX (combo2), 0);
+	//if GTK_CHECK_VERSION (4,10,0)
+	//	combo2 = gtk_drop_down_new_from_strings ((const char * const[]) { "Combo box entry 1", "Combo box entry 2", NULL });
+	//	gtk_drop_down_set_selected (GTK_DROP_DOWN (combo2), 0);
+	//else
+		combo2 = gtk_combo_box_text_new_with_entry ();
+		gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo2), "Combo box entry 1");
+		gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo2), "Combo box entry 2");
+		gtk_combo_box_set_active (GTK_COMBO_BOX (combo2), 0);
+	//endif
 	gtk_widget_set_sensitive (combo2, FALSE);
 
-	combo3 = gtk_combo_box_text_new ();
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo3), "Combo box 1");
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo3), "Combo box 2");
-	gtk_combo_box_set_active (GTK_COMBO_BOX (combo3), 0);
+	//if GTK_CHECK_VERSION (4,10,0)
+	//	combo3 = gtk_drop_down_new_from_strings ((const char * const[]) { "Combo box 1", "Combo box 2", NULL });
+	//	gtk_drop_down_set_selected (GTK_DROP_DOWN (combo3), 0);
+	//else
+		combo3 = gtk_combo_box_text_new ();
+		gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo3), "Combo box 1");
+		gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo3), "Combo box 2");
+		gtk_combo_box_set_active (GTK_COMBO_BOX (combo3), 0);
+	//endif
 
-	combo4 = gtk_combo_box_text_new ();
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo4), "Combo box 1");
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo4), "Combo box 2");
-	gtk_combo_box_set_active (GTK_COMBO_BOX (combo4), 0);
+	//if GTK_CHECK_VERSION (4,10,0)
+	//	combo4 = gtk_drop_down_new_from_strings ((const char * const[]) { "Combo box 1", "Combo box 2", NULL });
+	//	gtk_drop_down_set_selected (GTK_DROP_DOWN (combo4), 0);
+	//else
+		combo4 = gtk_combo_box_text_new ();
+		gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo4), "Combo box 1");
+		gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo4), "Combo box 2");
+		gtk_combo_box_set_active (GTK_COMBO_BOX (combo4), 0);
+	//endif
 	gtk_widget_set_sensitive (combo4, FALSE);
 
 	entry1 = gtk_entry_new ();
@@ -1227,7 +1273,6 @@ static void create_combos_entries (GtkWidget *root) {
 	gtk_widget_set_sensitive (entry4, FALSE);
 
 	// layout
-
 	add_to (GTK_BOX (root), combo1, FALSE, FALSE, 0, 0);
 	add_to (GTK_BOX (root), combo2, FALSE, FALSE, 0, 0);
 	add_to (GTK_BOX (root), combo3, FALSE, FALSE, 0, 0);
@@ -1383,7 +1428,13 @@ static void create_otherbuttons (GtkWidget *root1, GtkWidget *root2, GtkWidget *
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button3), TRUE);
 	gtk_widget_set_sensitive (button4, FALSE);
 
-	#if GTK_CHECK_VERSION (3,0,0)
+	// colorbutton
+	#if GTK_CHECK_VERSION (4,10,0)
+		GdkRGBA color;
+		gdk_rgba_parse (&color, "#7796ba");
+		button5 = gtk_color_dialog_button_new (gtk_color_dialog_new ());
+		gtk_color_dialog_button_set_rgba (GTK_COLOR_DIALOG_BUTTON (button5), &color);
+	#elif GTK_CHECK_VERSION (3,0,0)
 		GdkRGBA color;
 		gdk_rgba_parse (&color, "#7796ba");
 		button5 = gtk_color_button_new_with_rgba (&color);
@@ -1393,16 +1444,25 @@ static void create_otherbuttons (GtkWidget *root1, GtkWidget *root2, GtkWidget *
 		button5 = gtk_color_button_new_with_color (&color);
 	#endif
 
-	button6 = gtk_font_button_new ();
-	gtk_widget_set_size_request (button6, 186, -1);
-	#if GTK_CHECK_VERSION (4,0,0)
+	// fontbutton
+	#if GTK_CHECK_VERSION (4,10,0)
+		button6 = gtk_font_dialog_button_new (gtk_font_dialog_new ());
+		gtk_widget_set_size_request (button6, 186, -1);
 		// set fixed width for font button
 		gtk_label_set_ellipsize (GTK_LABEL (gtk_widget_get_first_child (gtk_widget_get_first_child (gtk_widget_get_first_child (button6)))), PANGO_ELLIPSIZE_END);
-	#elif GTK_CHECK_VERSION (3,0,0)
+	#elif GTK_CHECK_VERSION (4,0,0)
+		button6 = gtk_font_button_new ();
+		gtk_widget_set_size_request (button6, 186, -1);
+		// set fixed width for font button
+		gtk_label_set_ellipsize (GTK_LABEL (gtk_widget_get_first_child (gtk_widget_get_first_child (gtk_widget_get_first_child (button6)))), PANGO_ELLIPSIZE_END);
+	#else // GTK 2
+		button6 = gtk_font_button_new ();
+		gtk_widget_set_size_request (button6, 186, -1);
 		// set fixed width for font button
 		gtk_label_set_ellipsize (GTK_LABEL (g_list_first (gtk_container_get_children (GTK_CONTAINER (gtk_bin_get_child (GTK_BIN (button6)))))->data), PANGO_ELLIPSIZE_END);
 	#endif
 
+	// filebutton
 	#if GTK_CHECK_VERSION (4,0,0)
 		button7 = gtk_button_new_with_label ("Button 7");
 		gtk_widget_add_css_class (button7, "awf-cheatcode-btn7");
@@ -1413,6 +1473,7 @@ static void create_otherbuttons (GtkWidget *root1, GtkWidget *root2, GtkWidget *
 		button8 = gtk_file_chooser_button_new ("GtkFileChooserDialog", GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
 	#endif
 
+	// switchbutton or combomenu
 	#if GTK_CHECK_VERSION (3,0,0)
 		button9 = gtk_switch_new ();
 		gtk_switch_set_active (GTK_SWITCH (button9), TRUE);
@@ -1484,7 +1545,6 @@ static void create_otherbuttons (GtkWidget *root1, GtkWidget *root2, GtkWidget *
 	#endif
 
 	// layout
-
 	add_to (GTK_BOX (root1), button1, FALSE, FALSE, 0, 0);
 	add_to (GTK_BOX (root1), button2, FALSE, FALSE, 0, 0);
 	add_to (GTK_BOX (root1), button3, FALSE, FALSE, 0, 0);
@@ -1619,7 +1679,6 @@ static void create_progressbars (GtkWidget *root1, GtkWidget *root2, GtkWidget *
 	#endif
 
 	// layout
-
 	add_to (GTK_BOX (root1), progressbar1, FALSE, FALSE, 0, 0);
 	add_to (GTK_BOX (root1), progressbar2, FALSE, FALSE, 0, 0);
 	add_to (GTK_BOX (root1), scale1, FALSE, FALSE, 0, 0);
@@ -1779,7 +1838,7 @@ static void create_notebooks (GtkWidget *root1, GtkWidget *root2) {
 	notebook3 = gtk_notebook_new ();
 	notebook4 = gtk_notebook_new ();
 
-	#if GTK_CHECK_VERSION (3,4,0) && !GTK_CHECK_VERSION (4,0,0)
+	#if GTK_CHECK_VERSION (3,4,0) && !GTK_CHECK_VERSION (4,0,0) && !GTK_CHECK_VERSION (5,0,0)
 		// gtk-scroll-tabs for GTK 3 (3.4..3.24)
 		// with or without gtk3-classic https://github.com/lah7/gtk3-classic/commit/66b65775822c46e07f5b2f30036010d06dbcbad4
 		gtk_widget_add_events (notebook1, GDK_SCROLL_MASK);
@@ -1837,7 +1896,17 @@ static void create_notebook_tab (GtkWidget *notebook, gchar *text, gboolean clos
 
 	if (close) {
 
-		#if GTK_CHECK_VERSION (4,0,0)
+		#if GTK_CHECK_VERSION (4,12,0)
+			btn = gtk_button_new_from_icon_name ("gtk-close");
+			gtk_button_set_has_frame (GTK_BUTTON (btn), FALSE);
+
+			GtkCssProvider *provider = gtk_css_provider_new ();
+			gtk_css_provider_load_from_string (provider, "notebook tab button { padding:0; }");
+			gtk_style_context_add_provider_for_display (
+				gtk_widget_get_display (GTK_WIDGET (btn)),
+				GTK_STYLE_PROVIDER (provider),
+				GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+		#elif GTK_CHECK_VERSION (4,0,0)
 			btn = gtk_button_new_from_icon_name ("gtk-close");
 			gtk_button_set_has_frame (GTK_BUTTON (btn), FALSE);
 
@@ -2728,10 +2797,13 @@ static void accels_save () {
 
 static void dialog_open () {
 
-	#if GTK_CHECK_VERSION (4,0,0)
-
+	#if GTK_CHECK_VERSION (4,10,0)
+		GtkFileDialog *dialog = gtk_file_dialog_new ();
+		gtk_file_dialog_set_title (dialog, "GtkFileDialog:Open");
+		gtk_file_dialog_open (dialog, GTK_WINDOW (window), NULL, NULL, NULL);
+	#elif GTK_CHECK_VERSION (4,0,0)
 		GtkWidget *dialog = gtk_file_chooser_dialog_new (
-			"GtkFileChooserDialog",
+			"GtkFileChooserDialog:Open",
 			GTK_WINDOW (window),
 			GTK_FILE_CHOOSER_ACTION_OPEN,
 			_gtk("_Cancel"),
@@ -2739,13 +2811,10 @@ static void dialog_open () {
 			_gtk("_Open"),
 			GTK_RESPONSE_ACCEPT,
 			NULL);
-
-		gtk_window_set_icon_name (GTK_WINDOW (dialog), GETTEXT_PACKAGE);
-		gtk_widget_set_visible (dialog, TRUE);
-		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
+		show_dialog (dialog);
 	#else // GTK 2 & 3
 		GtkWidget *dialog = gtk_file_chooser_dialog_new (
-			"GtkFileChooserDialog",
+			"GtkFileChooserDialog:Open",
 			GTK_WINDOW (window),
 			GTK_FILE_CHOOSER_ACTION_OPEN,
 			"gtk-cancel",
@@ -2753,17 +2822,13 @@ static void dialog_open () {
 			"gtk-open",
 			GTK_RESPONSE_ACCEPT,
 			NULL);
-
-		gtk_window_set_icon_name (GTK_WINDOW (dialog), GETTEXT_PACKAGE);
-		gtk_dialog_run (GTK_DIALOG (dialog));
-		gtk_widget_destroy (dialog);
+		show_dialog (dialog);
 	#endif
 }
 
 static void dialog_recent () {
 
 	#if !GTK_CHECK_VERSION (4,0,0)
-
 		GtkWidget *dialog = gtk_recent_chooser_dialog_new (
 			"GtkRecentChooserDialog",
 			GTK_WINDOW (window),
@@ -2772,19 +2837,19 @@ static void dialog_recent () {
 			"gtk-open",
 			GTK_RESPONSE_ACCEPT,
 			NULL);
-
-		gtk_window_set_icon_name (GTK_WINDOW (dialog), GETTEXT_PACKAGE);
-		gtk_dialog_run (GTK_DIALOG (dialog));
-		gtk_widget_destroy (dialog);
+		show_dialog (dialog);
 	#endif
 }
 
 static void dialog_save () {
 
-	#if GTK_CHECK_VERSION (4,0,0)
-
+	#if GTK_CHECK_VERSION (4,10,0)
+		GtkFileDialog *dialog = gtk_file_dialog_new ();
+		gtk_file_dialog_set_title (dialog, "GtkFileDialog:Save");
+		gtk_file_dialog_save (dialog, GTK_WINDOW (window), NULL, NULL, NULL);
+	#elif GTK_CHECK_VERSION (4,0,0)
 		GtkWidget *dialog = gtk_file_chooser_dialog_new (
-			"GtkFileChooserDialog",
+			"GtkFileChooserDialog:Save",
 			GTK_WINDOW (window),
 			GTK_FILE_CHOOSER_ACTION_SAVE,
 			_gtk("_Cancel"),
@@ -2792,13 +2857,10 @@ static void dialog_save () {
 			_gtk("_Save"),
 			GTK_RESPONSE_ACCEPT,
 			NULL);
-
-		gtk_window_set_icon_name (GTK_WINDOW (dialog), GETTEXT_PACKAGE);
-		gtk_widget_set_visible (dialog, TRUE);
-		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
+		show_dialog (dialog);
 	#else // GTK 2 & 3
 		GtkWidget *dialog = gtk_file_chooser_dialog_new (
-			"GtkFileChooserDialog",
+			"GtkFileChooserDialog:Save",
 			GTK_WINDOW (window),
 			GTK_FILE_CHOOSER_ACTION_SAVE,
 			"gtk-cancel",
@@ -2806,10 +2868,7 @@ static void dialog_save () {
 			"gtk-save",
 			GTK_RESPONSE_ACCEPT,
 			NULL);
-
-		gtk_window_set_icon_name (GTK_WINDOW (dialog), GETTEXT_PACKAGE);
-		gtk_dialog_run (GTK_DIALOG (dialog));
-		gtk_widget_destroy (dialog);
+		show_dialog (dialog);
 	#endif
 }
 
@@ -2825,43 +2884,19 @@ static void dialog_message () {
 	gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog), _app("A widget factory is a theme preview application for GTK. It displays the various widget types provided by GTK in a single window allowing to see the visual effect of the applied theme."));
 
 	gtk_window_set_title (GTK_WINDOW (dialog), "GtkMessageDialog");
-	gtk_window_set_icon_name (GTK_WINDOW (dialog), GETTEXT_PACKAGE);
-
-	#if GTK_CHECK_VERSION (4,0,0)
-		gtk_widget_set_visible (dialog, TRUE);
-		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
-	#else // GTK 2 & 3
-		gtk_dialog_run (GTK_DIALOG (dialog));
-		gtk_widget_destroy (dialog);
-	#endif
+	show_dialog (dialog);
 }
 
 static void dialog_page_setup () {
 
 	GtkWidget *dialog = gtk_page_setup_unix_dialog_new ("GtkPageSetupUnixDialog", GTK_WINDOW (window));
-	gtk_window_set_icon_name (GTK_WINDOW (dialog), GETTEXT_PACKAGE);
-
-	#if GTK_CHECK_VERSION (4,0,0)
-		gtk_widget_set_visible (dialog, TRUE);
-		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
-	#else // GTK 2 & 3
-		gtk_dialog_run (GTK_DIALOG (dialog));
-		gtk_widget_destroy (dialog);
-	#endif
+	show_dialog (dialog);
 }
 
 static void dialog_print () {
 
 	GtkWidget *dialog = gtk_print_unix_dialog_new ("GtkPrintUnixDialog", GTK_WINDOW (window));
-	gtk_window_set_icon_name (GTK_WINDOW (dialog), GETTEXT_PACKAGE);
-
-	#if GTK_CHECK_VERSION (4,0,0)
-		gtk_widget_set_visible (dialog, TRUE);
-		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
-	#else // GTK 2 & 3
-		gtk_dialog_run (GTK_DIALOG (dialog));
-		gtk_widget_destroy (dialog);
-	#endif
+	show_dialog (dialog);
 }
 
 static void dialog_about () {
@@ -2884,7 +2919,7 @@ static void dialog_about () {
 				pango_version_string ())
 		),
 		"website", "https://github.com/luigifab/awf-extended",
-		"copyright", "Copyright © 2020-2024 Fabrice Creuzot (luigifab)\nCopyright © 2011-2017 Valère Monseur (valr)",
+		"copyright", "Copyright © 2020-2025 Fabrice Creuzot (luigifab)\nCopyright © 2011-2017 Valère Monseur (valr)",
 		"icon-name", GETTEXT_PACKAGE,
 		"logo-icon-name", GETTEXT_PACKAGE,
 		"license", "A widget factory is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.",
@@ -2901,12 +2936,18 @@ static void dialog_calendar () {
 
 	GtkWidget *dialog, *infobar, *label, *calendar, *vbox = BOXV, *area;
 
-	dialog = gtk_dialog_new_with_buttons (
-		NULL,
-		GTK_WINDOW (window),
-		GTK_DIALOG_DESTROY_WITH_PARENT,
-		NULL,
-		NULL);
+	#if GTK_CHECK_VERSION (4,10,0)
+		dialog = gtk_window_new ();
+		gtk_window_set_title (GTK_WINDOW (dialog), "GtkWindow:Modal");
+	#else
+		dialog = gtk_dialog_new_with_buttons (
+			NULL,
+			GTK_WINDOW (window),
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			NULL,
+			NULL);
+		gtk_window_set_title (GTK_WINDOW (dialog), "GtkDialog");
+	#endif
 
 	gtk_widget_set_size_request (dialog, 350, -1);
 
@@ -2977,32 +3018,26 @@ static void dialog_calendar () {
 	#endif
 
 	// dialog
-	area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
-	add_to (GTK_BOX (area), vbox, TRUE, TRUE, 5, 5);
-
-	#if GTK_CHECK_VERSION (4,0,0)
-		// @see https://blog.gtk.org/2022/10/30/on-deprecations/
-		G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+	#if GTK_CHECK_VERSION (4,10,0)
+		area = BOXV;
+		gtk_window_set_child (GTK_WINDOW (dialog), area);
+		add_to (GTK_BOX (area), vbox, TRUE, TRUE, 7, 7);
+		// @todo buttons
+	#elif GTK_CHECK_VERSION (4,0,0)
+		area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+		add_to (GTK_BOX (area), vbox, TRUE, TRUE, 5, 5);
 		gtk_dialog_add_button (GTK_DIALOG (dialog), _gtk("_Cancel"), 0);
 		gtk_dialog_add_button (GTK_DIALOG (dialog), _gtk("_OK"), 0);
-		G_GNUC_END_IGNORE_DEPRECATIONS
 	#else // GTK 2 & 3
+		area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+		add_to (GTK_BOX (area), vbox, TRUE, TRUE, 5, 5);
 		gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-cancel", 0);
 		gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-ok", 0);
 		gtk_widget_show_all (dialog);
 	#endif
 
 	gtk_window_set_resizable (GTK_WINDOW (dialog), FALSE);
-	gtk_window_set_title (GTK_WINDOW (dialog), "GtkDialog");
-	gtk_window_set_icon_name (GTK_WINDOW (dialog), GETTEXT_PACKAGE);
-
-	#if GTK_CHECK_VERSION (4,0,0)
-		gtk_widget_set_visible (dialog, TRUE);
-		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
-	#else // GTK 2 & 3
-		gtk_dialog_run (GTK_DIALOG (dialog));
-		gtk_widget_destroy (dialog);
-	#endif
+	show_dialog (dialog);
 }
 
 static void dialog_scales_top () {
@@ -3029,12 +3064,18 @@ static void dialog_scales (int position) {
 	GtkWidget *scale1h, *scale2h, *scale3h, *scale4h, *scale5h, *scale6h, *scale7h, *scale8h, *scale9h, *scale10h, *scale11h, *scale12h;
 	gdouble value = gtk_range_get_value (GTK_RANGE (scale1));
 
-	dialog = gtk_dialog_new_with_buttons (
-		NULL,
-		GTK_WINDOW (window),
-		GTK_DIALOG_DESTROY_WITH_PARENT,
-		NULL,
-		NULL);
+	#if GTK_CHECK_VERSION (4,10,0)
+		dialog = gtk_window_new ();
+		gtk_window_set_title (GTK_WINDOW (dialog), "GtkWindow:Modal");
+	#else
+		dialog = gtk_dialog_new_with_buttons (
+			NULL,
+			GTK_WINDOW (window),
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			NULL,
+			NULL);
+		gtk_window_set_title (GTK_WINDOW (dialog), "GtkDialog");
+	#endif
 
 	// vertical scales
 	scale1v = create_vertical_scale (value, FALSE, FALSE, position);
@@ -3145,7 +3186,12 @@ static void dialog_scales (int position) {
 	update_marks (GTK_SCALE (scale12h), TRUE, GTK_POS_BOTTOM);
 
 	// dialog
-	area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+	#if GTK_CHECK_VERSION (4,10,0)
+		area = BOXV;
+		gtk_window_set_child (GTK_WINDOW (dialog), area);
+	#else
+		area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+	#endif
 	add_to (GTK_BOX (area), hbox, TRUE, TRUE, 5, 5);
 		add_to (GTK_BOX (hbox), vbox1, TRUE, TRUE, 5, 5);
 			add_to (GTK_BOX (vbox1), scale1h, FALSE, FALSE, 5, 5);
@@ -3177,12 +3223,11 @@ static void dialog_scales (int position) {
 			add_to (GTK_BOX (vbox3), scale11h, FALSE, FALSE, 5, 5);
 			add_to (GTK_BOX (vbox3), scale12h, FALSE, FALSE, 5, 5);
 
-	#if GTK_CHECK_VERSION (4,0,0)
-		// @see https://blog.gtk.org/2022/10/30/on-deprecations/
-		G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+	#if GTK_CHECK_VERSION (4,10,0)
+		// @todo buttons
+	#elif GTK_CHECK_VERSION (4,0,0)
 		gtk_dialog_add_button (GTK_DIALOG (dialog), _gtk("_Cancel"), 0);
 		gtk_dialog_add_button (GTK_DIALOG (dialog), _gtk("_OK"), 0);
-		G_GNUC_END_IGNORE_DEPRECATIONS
 	#else // GTK 2 & 3
 		gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-cancel", 0);
 		gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-ok", 0);
@@ -3190,10 +3235,16 @@ static void dialog_scales (int position) {
 	#endif
 
 	gtk_window_set_resizable (GTK_WINDOW (dialog), FALSE);
-	gtk_window_set_title (GTK_WINDOW (dialog), "GtkDialog");
-	gtk_window_set_icon_name (GTK_WINDOW (dialog), GETTEXT_PACKAGE);
+	show_dialog (dialog);
+}
 
-	#if GTK_CHECK_VERSION (4,0,0)
+static void show_dialog (GtkWidget *dialog) {
+
+	#if GTK_CHECK_VERSION (4,10,0)
+		gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
+		gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (window));
+		gtk_widget_set_visible (dialog, TRUE);
+	#elif GTK_CHECK_VERSION (4,0,0)
 		gtk_widget_set_visible (dialog, TRUE);
 		g_signal_connect (dialog, "response", G_CALLBACK (closedialog), NULL);
 	#else // GTK 2 & 3
@@ -3203,7 +3254,7 @@ static void dialog_scales (int position) {
 }
 
 
-// scroll tabs (GTK 4 or GTK 3)
+// scroll tabs (GTK 4.0+ or GTK 3.4+)
 // @see https://github.com/mate-desktop/mate-control-center/blob/master/capplets/common/capplet-util.c
 // for on_scrolltabs source function is capplet_dialog_page_scroll_event_cb
 // of mate-appearance-properties from mate-control-center, GNU GPL 2.0+

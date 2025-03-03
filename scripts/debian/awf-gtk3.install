@@ -1,0 +1,5 @@
+data/awf-gtk3.desktop                   usr/share/applications
+icons-gtk3/*                            usr/share/icons/hicolor
+locale-gtk3/*                           usr/share/locale
+debian/fr.luigifab.awfgtk3.metainfo.xml usr/share/metainfo
+usr/bin/awf-gtk3                        usr/bin

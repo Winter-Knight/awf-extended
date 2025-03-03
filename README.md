@@ -38,9 +38,9 @@ Theme used for the screenshots is available [here](https://github.com/luigifab/h
 
 ## Installation
 
-It require **GTK 2.24** or **GTK 3.0+** *(including 3.24)* or **GTK 4.0+** *(including 4.12)*, and *GLIB 2.28+*.
+It require **GTK 2.24** or **GTK 3.0+** *(including 3.24)* or **GTK 4.0+** *(including 4.17)*, and *GLIB 2.28+*.
 
-#### Installation for Debian, Ubuntu, Trisquel, Linux Mint, MX Linux
+#### Installation for Debian, Devuan, Ubuntu, Trisquel, Linux Mint, MX Linux
 
 * `sudo apt install awf-gtk2 awf-gtk3 awf-gtk4`
 
@@ -58,17 +58,19 @@ It require **GTK 2.24** or **GTK 3.0+** *(including 3.24)* or **GTK 4.0+** *(inc
 
 #### Building from source
 
-* To compile the program with all major GTK versions available run: `build.sh`
-* To compile the program and create DEB packages for Debian run: `debian-gtkx/deb.sh`
+* To compile the program with all available major versions of GTK run: `build.sh`
+* To compile the program and create DEB packages for Debian & Ubuntu run: `debian-gtkx/deb.sh`
 * To compile the program and create RPM packages for Fedora run: `fedora/rpm-gtkx.sh`
 * To compile the program and create RPM packages for openSUSE run: `opensuse/rpm-gtkx.sh`
 * To compile the program and create RPM packages for Mageia run: `mageia/rpm-gtkx.sh`
 
-#### Alternative installation for Debian, Ubuntu, Trisquel, Linux Mint, MX Linux
+#### Alternative installation for Debian, Devuan, Ubuntu, Trisquel, Linux Mint, MX Linux
 
 ```bash
 # PPA: https://launchpad.net/~luigifab/+archive/ubuntu/packages
 # with Debian 12+ you can use mantic+ instead of focal (https://unix.stackexchange.com/a/669008/364800)
+# for Debian you can use bionic for buster, focal for bullseye, noble for bookworm and trixie
+# for Devuan you can use bionic for beowulf, focal for chimaera, noble for daedalus
 # for Trisquel you can use focal for nabia, jammy for aramo
 # for Linux Mint you can use focal for 20.x and 5, jammy for 21.x, noble for 22.x and 6
 # for MX Linux you can use focal for 19.x and 21.x, noble for 23.x
@@ -86,6 +88,11 @@ sudo wget -O /etc/apt/trusted.gpg.d/luigifab.gpg https://www.luigifab.fr/apt.gpg
 echo "deb http://ppa.launchpad.net/luigifab/packages/ubuntu focal main" | sudo tee -a /etc/apt/sources.list
 sudo apt update
 sudo apt install awf-gtk2 awf-gtk3 awf-gtk4
+# or
+wget -qO - https://www.luigifab.fr/apt.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/luigifab.gpg
+echo "deb http://ppa.launchpad.net/luigifab/packages/ubuntu focal main" | sudo tee -a /etc/apt/sources.list
+sudo apt update
+sudo apt install awf-gtk2 awf-gtk3 awf-gtk4
 
 # sha256sum /etc/apt/trusted.gpg.d/luigifab.gpg
 578c89a677048e38007462d543686b53587efba9f93814601169253c45ff9213
@@ -93,6 +100,19 @@ sudo apt install awf-gtk2 awf-gtk3 awf-gtk4
 /etc/apt/trusted.gpg.d/luigifab.gpg
 pub   rsa4096 2020-10-31 [SC]
       458B 0C46 D024 FD8C B8BC  99CD FFE5 BD43 9356 DF7D
+```
+
+## Blurry text with GTK 4
+
+If font rendering is bad, add in `~/.config/gtk-4.0/settings.ini`:
+
+```
+[Settings]
+gtk-font-rendering=manual
+gtk-hint-font-metrics=1
+gtk-xft-hintstyle=hintfull
+gtk-xft-antialias=0
+gtk-xft-hinting=1
 ```
 
 ## Dev
@@ -105,8 +125,8 @@ ls ~/.themes/yourtheme/gtk-3*/*.css | entr killall -s SIGHUP awf-gtk3
 
 ## Copyright
 
-- Current version: 2.8.0 (02/02/2024)
-- Compatibility: GTK 2.24 / 3.0..3.24 / 4.0..4.12
+- Current version: 2.8.1 (03/03/2025)
+- Compatibility: GTK 2.24 / 3.0..3.24 / 4.0..4.17
 - Links: [luigifab.fr](https://www.luigifab.fr/gtk/awf-extended) - [github.com](https://github.com/luigifab/awf-extended)\
 [Arch Linux awf-gtk2.zst](https://aur.archlinux.org/packages/awf-gtk2)
 ; [Arch Linux awf-gtk3.zst](https://aur.archlinux.org/packages/awf-gtk3)
@@ -130,7 +150,7 @@ If you like, take some of your time to improve the translations, go to https://b
 
 ## Packages in official distros repositories
 
-[![Packages status](https://repology.org/badge/vertical-allrepos/awf-widget-factory.svg?header=awf-gtk&minversion=2.0.0&exclude_unsupported=1&columns=3)](https://repology.org/project/awf-widget-factory/versions)
+[![Packages status](https://repology.org/badge/vertical-allrepos/awf-widget-factory.svg?header=awf-gtk&minversion=2.0.0&columns=3)](https://repology.org/project/awf-widget-factory/versions)
 
 ## Credits
 

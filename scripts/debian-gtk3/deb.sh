@@ -1,0 +1,125 @@
+#!/bin/bash
+# Debian: sudo apt install dpkg-dev devscripts build-essential dh-make dh-autoreconf intltool libgtk-3-dev
+
+
+cd "$(dirname "$0")"
+version="2.8.1"
+gtk="gtk3"
+
+mkdir builder
+rm -rf builder/*
+
+# copy to a tmp directory
+if [ true ]; then
+	cd builder
+	wget https://github.com/luigifab/awf-extended/archive/v$version/awf-extended-$version.tar.gz
+	tar xzf awf-extended-$version.tar.gz
+	cd ..
+else
+	temp=awf-extended-$version
+	mkdir /tmp/$temp
+	cp -r ../../* /tmp/$temp/
+	rm -rf /tmp/$temp/scripts/*/builder/
+
+	mv /tmp/$temp builder/
+	cp /usr/share/common-licenses/GPL*3 builder/$temp/LICENSE
+
+	cd builder/
+	tar czf $temp.tar.gz $temp
+	cd ..
+fi
+
+
+# create packages for Debian and Ubuntu
+for serie in experimental plucky oracular noble jammy focal bionic xenial trusty; do
+
+	printf "\n\n#################################################################### $serie ## awf-gtk3 ##\n\n"
+	if [ $serie = "experimental" ]; then
+		# copy for Ubuntu
+		cp -a builder/awf-extended-$version/ builder/awf-extended-$version+src/
+		cd builder/awf-extended-$version/
+	elif [ $serie = "unstable" ]; then
+		rm -rf builder/awf-extended-$version/
+		cp -a builder/awf-extended-$version+src/ builder/awf-extended-$version/
+		cd builder/awf-extended-$version/
+	else
+		cp -a builder/awf-extended-$version+src/ builder/awf-extended-$serie-$version/
+		cd builder/awf-extended-$serie-$version/
+	fi
+
+	dh_make -s -y -f ../awf-extended-$version.tar.gz -p awf-$gtk
+
+	rm -f debian/*/*ex debian/*ex debian/*EX debian/README* debian/*doc*
+	cp scripts/debian-$gtk/* data/*.1 debian/
+	cp scripts/debian/*$gtk* scripts/debian/copyright scripts/debian/metadata scripts/debian/watch scripts/debian/clean debian/
+	head -n -1 debian/*$gtk*.install > debian/install ; rm debian/awf-$gtk.install
+	rm -f debian/deb.sh
+	mv debian/metadata debian/upstream/metadata
+
+	if [ $serie = "experimental" ]; then
+		mv debian/control.debian debian/control
+		mv debian/changelog.debian debian/changelog
+		echo "=========================== buildpackage ($serie) =="
+		dpkg-buildpackage -us -uc
+	else
+		# debhelper: experimental:13 focal/mx19/mx21:12 bionic:9 xenial:9 trusty:9
+		if [ $serie = "unstable" ]; then
+			mv debian/control.debian debian/control
+		elif [ $serie = "mx19" ] || [ $serie = "mx21" ]; then
+			mv debian/control.mx debian/control
+			sed -i 's/debhelper-compat (= 13)/debhelper-compat (= 12)/g' debian/control
+		elif [ $serie = "focal" ]; then
+			mv debian/control.ubuntu debian/control
+			sed -i 's/debhelper-compat (= 13)/debhelper-compat (= 12)/g' debian/control
+		elif [ $serie = "bionic" ]; then
+			mv debian/control.ubuntu debian/control
+			sed -i 's/dh $@/dh $@ --with autoreconf/g' debian/rules
+			sed -i 's/debhelper-compat (= 13)/debhelper-compat (= 9), dh-autoreconf/g' debian/control
+		elif [ $serie = "xenial" ]; then
+			mv debian/control.ubuntu debian/control
+			sed -i 's/dh $@/dh $@ --with autoreconf/g' debian/rules
+			sed -i 's/debhelper-compat (= 13)/debhelper (>= 9), dh-autoreconf/g' debian/control
+			sed -i ':a;N;$!ba;s/Rules-Requires-Root: no\n//g' debian/control
+			echo 9 > debian/compat
+		elif [ $serie = "trusty" ]; then
+			mv debian/control.ubuntu debian/control
+			sed -i 's/dh $@/dh $@ --with autotools_dev,autoreconf/g' debian/rules
+			sed -i 's/override_dh_update_autotools_config/override_dh_autotools-dev_updateconfig/g' debian/rules
+			sed -i 's/debhelper-compat (= 13)/debhelper (>= 9), autotools-dev, dh-autoreconf/g' debian/control
+			sed -i ':a;N;$!ba;s/Rules-Requires-Root: no\n//g' debian/control
+			echo 9 > debian/compat
+		else
+			mv debian/control.ubuntu debian/control
+		fi
+		if [ $serie = "mx23" ] || [ $serie = "mx21" ] || [ $serie = "mx19" ]; then
+			mv debian/changelog.mx debian/changelog
+			sed -i 's/-1) /-1~'$serie'+1) /' debian/changelog
+		elif [ $serie = "unstable" ]; then
+			mv debian/changelog.debian debian/changelog
+		else
+			mv debian/changelog.ubuntu debian/changelog
+			sed -i 's/experimental/'$serie'/g' debian/changelog
+			sed -i 's/-1) /-1+'$serie') /' debian/changelog
+		fi
+		rm -f debian/*.mx debian/*.debian
+		echo "=========================== buildpackage ($serie) =="
+		dpkg-buildpackage -us -uc -ui -d -S
+	fi
+	echo "=========================== debsign ($serie) =="
+	cd ..
+
+	if [ $serie = "experimental" ]; then
+		debsign awf-${gtk}_$version*.changes
+		echo "=========================== lintian ($serie) =="
+		lintian -EviIL +pedantic awf-$gtk*$version*.deb
+	elif [ $serie = "unstable" ]; then
+		debsign awf-$gtk*$version-*_source.changes
+	else
+		debsign awf-$gtk*$version*$serie*source.changes
+	fi
+	cd ..
+done
+
+printf "\n\n"
+ls -dlth "$PWD/"builder/*.deb "$PWD/"builder/*.changes
+rm -rf builder/*/
