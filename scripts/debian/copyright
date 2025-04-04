@@ -8,6 +8,11 @@ Copyright:
  2020-2025 Fabrice Creuzot (luigifab) <code@luigifab.fr>
 License: GPL-3+
 
+Files: */fr.luigifab.*.metainfo.xml */slackware/*
+Copyright:
+ 2020-2025 Fabrice Creuzot (luigifab) <code@luigifab.fr>
+License: Expat
+
 License: GPL-3+
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

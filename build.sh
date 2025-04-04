@@ -12,7 +12,7 @@ cp /usr/share/common-licenses/GPL*3 builder/LICENSE
 cp configure.ac    builder/
 cp Makefile.am     builder/
 cp src/Makefile.am builder/src/
-cp src/awf.c       builder/src/
+cp src/awf-gtk*.c  builder/src/
 
 # build
 cd builder/

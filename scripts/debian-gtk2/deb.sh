@@ -1,9 +1,9 @@
 #!/bin/bash
-# Debian: sudo apt install dpkg-dev devscripts build-essential dh-make dh-autoreconf intltool libgtk2.0-dev
+# Debian: sudo apt install dpkg-dev devscripts build-essential dh-make dh-autoreconf intltool libnotify-dev libgtk2.0-dev
 
 
 cd "$(dirname "$0")"
-version="2.8.1"
+version="2.9.0"
 gtk="gtk2"
 
 mkdir builder
@@ -49,7 +49,7 @@ for serie in experimental plucky oracular noble jammy focal bionic xenial trusty
 
 	dh_make -s -y -f ../awf-extended-$version.tar.gz -p awf-$gtk
 
-	rm -f debian/*/*ex debian/*ex debian/*EX debian/README* debian/*doc*
+	rm -rf debian/*/*ex debian/*ex debian/*EX debian/README* debian/*doc*
 	cp scripts/debian-$gtk/* data/*.1 debian/
 	cp scripts/debian/*$gtk* scripts/debian/copyright scripts/debian/metadata scripts/debian/watch scripts/debian/clean debian/
 	head -n -1 debian/*$gtk*.install > debian/install ; rm debian/awf-$gtk.install
@@ -65,6 +65,7 @@ for serie in experimental plucky oracular noble jammy focal bionic xenial trusty
 		# debhelper: experimental:13 focal/mx19/mx21:12 bionic:9 xenial:9 trusty:9
 		if [ $serie = "unstable" ]; then
 			mv debian/control.debian debian/control
+
 		elif [ $serie = "mx19" ] || [ $serie = "mx21" ]; then
 			mv debian/control.mx debian/control
 			sed -i 's/debhelper-compat (= 13)/debhelper-compat (= 12)/g' debian/control
@@ -122,4 +123,5 @@ done
 
 printf "\n\n"
 ls -dlth "$PWD/"builder/*.deb "$PWD/"builder/*.changes
+printf "\n"
 rm -rf builder/*/

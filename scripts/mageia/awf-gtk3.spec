@@ -1,5 +1,5 @@
 Name:          awf-gtk3
-Version:       2.8.1
+Version:       2.9.0
 Release:       %mkrel 1
 Summary:       Theme preview application for GTK 3
 Summary(fr):   Application d'aperçu de thème pour GTK 4
@@ -12,10 +12,12 @@ BuildRequires: aspell-fr
 BuildRequires: autoconf
 BuildRequires: automake
 BuildRequires: desktop-file-utils
+BuildRequires: libnotify-devel >= 0.7.0
 BuildRequires: gcc
 BuildRequires: gettext
 BuildRequires: gtk3-devel
 Requires:      gtk+3
+Requires:      libnotify >= 0.7.0
 Requires:      hicolor-icon-theme
 
 %description %{expand:
@@ -58,8 +60,8 @@ install -Dpm 644 data/%{name}.fr.1 %{buildroot}%{_mandir}/fr/man1/%{name}.1
 
 for file in src/po/*.po; do
   code=$(basename "$file" .po)
-  install -dm 755 %{buildroot}%{_datadir}/locale/${code}/LC_MESSAGES/
-  msgfmt src/po/${code}.po -o %{buildroot}%{_datadir}/locale/${code}/LC_MESSAGES/%{name}.mo
+  install -dm 755 %{buildroot}%{_datadir}/locale/$code/LC_MESSAGES/
+  msgfmt src/po/$code.po -o %{buildroot}%{_datadir}/locale/$code/LC_MESSAGES/%{name}.mo
 done
 %find_lang %{name} --with-man
 
@@ -74,8 +76,8 @@ done
 
 
 %changelog
-* Mon Mar 03 2025 Fabrice Creuzot <code@luigifab.fr> - 2.8.1-1.mga9
+* Fri Apr 04 2025 Fabrice Creuzot <code@luigifab.fr> - 2.9.0-1.mga9
 - New upstream release
 
-* Fri Feb 02 2024 Fabrice Creuzot <code@luigifab.fr> - 2.8.0-1.mga9
+* Mon Mar 03 2025 Fabrice Creuzot <code@luigifab.fr> - 2.8.1-1.mga9
 - Initial Mageia package release (Closes: mbz#32827)

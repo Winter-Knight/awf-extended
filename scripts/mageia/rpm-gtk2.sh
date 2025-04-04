@@ -1,9 +1,9 @@
 #!/bin/bash
-# Mageia: sudo urpmi --no-recommends rpmdevtools rpm-sign autoconf automake gtk2-devel desktop-file-utils aspell-fr enchant2-aspell
+# Mageia: sudo urpmi --no-recommends rpmdevtools rpm-sign autoconf automake libnotify-devel gtk2-devel desktop-file-utils aspell-fr enchant2-aspell
 
 
 cd "$(dirname "$0")"
-version="2.8.1"
+version="2.9.0"
 gtk="gtk2"
 
 mkdir -p builder ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}

@@ -1,9 +1,9 @@
 #!/bin/bash
-# openSUSE: sudo zypper install rpmdevtools rpm-build autoconf automake gtk3-devel desktop-file-utils aspell-fr
+# openSUSE: sudo zypper install rpmdevtools rpm-build autoconf automake libnotify-devel gtk3-devel desktop-file-utils aspell-fr
 
 
 cd "$(dirname "$0")"
-version="2.8.1"
+version="2.9.0"
 gtk="gtk3"
 
 mkdir -p builder ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}

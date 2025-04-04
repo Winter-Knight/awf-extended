@@ -1,0 +1,16 @@
+# autoreconf -if
+/build-aux/
+/configure
+/aclocal.m4
+/autom4te.cache/
+Makefile.in
+
+# ./configure
+/config.log
+/config.status
+Makefile
+.deps/
+
+# make
+/src/awf-gtk?
+*.o

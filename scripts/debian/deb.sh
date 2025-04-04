@@ -1,9 +1,9 @@
 #!/bin/bash
-# Debian: sudo apt install dpkg-dev devscripts build-essential dh-make dh-autoreconf intltool libgtk2.0-dev libgtk-3-dev libgtk-4-dev
+# Debian: sudo apt install dpkg-dev devscripts build-essential dh-make dh-autoreconf intltool libnotify-dev libgtk2.0-dev libgtk-3-dev libgtk-4-dev
 
 
 cd "$(dirname "$0")"
-version="2.8.1"
+version="2.9.0"
 
 
 mkdir builder
@@ -49,7 +49,7 @@ for serie in experimental unstable oracular mx23; do
 
 	dh_make -s -y -f ../awf-extended-$version.tar.gz -p awf-gtk
 
-	rm -f debian/*/*ex debian/*ex debian/*EX debian/README* debian/*doc*
+	rm -rf debian/*/*ex debian/*ex debian/*EX debian/README* debian/*doc*
 	cp scripts/debian/* data/*.1 debian/
 	rm -f debian/deb.sh
 	mv debian/metadata debian/upstream/metadata
@@ -57,7 +57,7 @@ for serie in experimental unstable oracular mx23; do
 
 
 	if [ $serie = "experimental" ]; then
-		mv debian/control.debian debian/control
+		mv debian/control.ubuntu debian/control # yes
 		mv debian/changelog.debian debian/changelog
 		echo "=========================== buildpackage ($serie) =="
 		dpkg-buildpackage -us -uc
@@ -65,6 +65,7 @@ for serie in experimental unstable oracular mx23; do
 		# debhelper: experimental:13 focal/mx19/mx21:12 bionic:9 xenial:9 trusty:9
 		if [ $serie = "unstable" ]; then
 			mv debian/control.debian debian/control
+			sed -i -e 's/#sed -i/sed -i/g' -e 's/ "gtk2"//g' debian/rules
 		elif [ $serie = "mx19" ] || [ $serie = "mx21" ]; then
 			mv debian/control.mx debian/control
 			sed -i 's/debhelper-compat (= 13)/debhelper-compat (= 12)/g' debian/control
@@ -122,4 +123,5 @@ done
 
 printf "\n\n"
 ls -dlth "$PWD/"builder/*.deb "$PWD/"builder/*.changes
+printf "\n"
 rm -rf builder/*/
