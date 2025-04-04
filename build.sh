@@ -8,12 +8,11 @@ rm -f awf-gtk2 awf-gtk3 awf-gtk4
 
 # copy to a tmp directory
 mkdir builder builder/src
-touch builder/{NEWS,AUTHORS,README,ChangeLog}
-cp /usr/share/common-licenses/GPL-3 builder/COPYING
+cp /usr/share/common-licenses/GPL*3 builder/LICENSE
 cp configure.ac    builder/
 cp Makefile.am     builder/
 cp src/Makefile.am builder/src/
-cp src/awf.c       builder/src/
+cp src/awf-gtk*.c  builder/src/
 
 # build
 cd builder/
