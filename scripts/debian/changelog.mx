@@ -1,3 +1,11 @@
+awf-gtk (3.0.0-1) mx; urgency=low
+
+  * New upstream release
+  * Add support for CSD window
+  * Add --enable-only-gtkx and --disable-gtkx options
+
+ -- Fabrice Creuzot <code@luigifab.fr>  Mon, 05 May 2025 20:00:00 +0000
+
 awf-gtk (2.9.0-1) mx; urgency=low
 
   * New upstream release

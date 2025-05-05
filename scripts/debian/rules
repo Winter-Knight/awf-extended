@@ -3,10 +3,12 @@
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
-	dh $@
+	dh $@ --with bash-completion
+
+override_dh_auto_configure:
+	dh_auto_configure -- --disable-gtk5
 
 override_dh_update_autotools_config:
-	#sed -i 's/ -eq 2/ -eq -1/g' configure.ac
 	for gtk in "gtk2" "gtk3" "gtk4"; do \
 		cp -ar data/icons/ icons-$$gtk/; \
 		for file in icons-$$gtk/*/*/awf.png; do mv $$file `dirname $$file`/awf-$$gtk.png; done; \

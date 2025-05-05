@@ -3,11 +3,12 @@
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
-	dh $@
+	dh $@ --with bash-completion
+
+override_dh_auto_configure:
+	dh_auto_configure -- --enable-only-gtk2
 
 override_dh_update_autotools_config:
-	sed -i 's/ -eq 3/ -eq -1/g' configure.ac
-	sed -i 's/ -eq 4/ -eq -1/g' configure.ac
 	cp -ar data/icons/ icons-gtk2/
 	for file in icons-gtk2/*/*/awf.png; do mv $$file `dirname $$file`/awf-gtk2.png; done
 	for file in icons-gtk2/*/*/awf.svg; do mv $$file `dirname $$file`/awf-gtk2.svg; done

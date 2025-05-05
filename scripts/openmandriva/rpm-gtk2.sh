@@ -1,16 +1,19 @@
 #!/bin/bash
-# Mageia: sudo dnf rpmdevtools rpm-sign autoconf automake libnotify-devel gtk2-devel desktop-file-utils aspell-fr enchant2-aspell abb
+
 
 
 cd "$(dirname "$0")"
-version="2.9.0"
+version="3.0.0"
 gtk="gtk2"
 
 mkdir -p builder builder/{BUILD,RPMS,SRPMS}
 find builder/* ! -name "*$version*.rpm" ! -name "*$version*.gz" -exec rm -rf {} + 2>/dev/null
 
+
 # copy to a tmp directory
 if [ true ]; then
+	rm awf-$gtk.spec
+	wget https://raw.githubusercontent.com/luigifab/awf-extended/refs/tags/v$version/scripts/openmandriva/awf-$gtk.spec
 	chmod 644 awf-$gtk.spec
 	spectool -g -R awf-$gtk.spec
 else
@@ -43,9 +46,10 @@ rpm --checksig *.rpm
 echo "==========================="
 rpmlint awf-$gtk.spec *.rpm
 echo "==========================="
+rm *debug*rpm
 ls -dlth "$PWD/"*.rpm
 echo "==========================="
 cd ..
 
 # cleanup
-rm -rf builder/*/ builder/*buildlog builder/*spec
+rm -rf builder/*/ builder/*buildlog builder/*spec awf-extended-$version.tar.gz

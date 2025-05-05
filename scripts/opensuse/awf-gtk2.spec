@@ -1,5 +1,5 @@
 Name:          awf-gtk2
-Version:       2.9.0
+Version:       3.0.0
 Release:       0
 Summary:       Theme preview application for GTK 2
 Summary(fr):   Application d'aperçu de thème pour GTK 2
@@ -19,6 +19,8 @@ Requires:      gtk2 >= 2.24.0
 Requires:      libnotify >= 0.7.0
 Requires:      hicolor-icon-theme
 
+
+
 %description %{expand:
 A widget factory is a theme preview application for GTK. It displays the
 various widget types provided by GTK in a single window allowing to see
@@ -36,12 +38,10 @@ Ce paquet fournit la version GTK 2.}
 
 %prep
 %setup -q -n awf-extended-%{version}
-sed -i 's/ -eq 3/ -eq -1/g' configure.ac
-sed -i 's/ -eq 4/ -eq -1/g' configure.ac
 
 %build
 autoreconf -fi
-%configure
+%configure --enable-only-gtk2
 %make_build
 
 %install
@@ -54,6 +54,7 @@ for file in data/icons/*/*/awf.png; do mv $file ${file/\/awf.png/\/%{name}.png};
 for file in data/icons/*/*/awf.svg; do mv $file ${file/\/awf.svg/\/%{name}.svg}; done
 cp -a data/icons/* %{buildroot}%{_datadir}/icons/hicolor/
 
+install -Dpm 644 data/%{name}.bash %{buildroot}%{_datadir}/bash-completion/completions/%{name}
 install -Dpm 644 data/%{name}.1 %{buildroot}%{_mandir}/man1/%{name}.1
 install -Dpm 644 data/%{name}.fr.1 %{buildroot}%{_mandir}/fr/man1/%{name}.1
 
@@ -71,10 +72,16 @@ done
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/icons/hicolor/*/apps/%{name}.png
 %{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
+%{_datadir}/bash-completion/completions/%{name}
 %{_mandir}/man1/%{name}.1*
 
 
 %changelog
+* Mon May 05 2025 Fabrice Creuzot <code@luigifab.fr> - 3.0.0-1
+- New upstream release
+- Add support for CSD window
+- Add --enable-only-gtkx and --disable-gtkx options
+
 * Fri Apr 04 2025 Fabrice Creuzot <code@luigifab.fr> - 2.9.0-1
 - New upstream release
 
@@ -101,3 +108,6 @@ done
 
 * Sun Apr 04 2021 Fabrice Creuzot <code@luigifab.fr> - 2.3.0-1
 - Initial openSUSE package release
+
+
+

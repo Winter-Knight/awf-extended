@@ -1,6 +1,6 @@
 /**
  * Forked  M/10/03/2020
- * Updated L/31/03/2025
+ * Updated D/27/04/2025
  *
  * Copyright 2020-2025 | Fabrice Creuzot (luigifab) <code~luigifab~fr>
  * https://github.com/luigifab/awf-extended
@@ -138,12 +138,10 @@ static int current_direction       = GTK_TEXT_DIR_NONE;
 static gchar *current_theme        = "auto";
 static gchar *opt_theme            = "auto";
 static gchar *opt_screenshot       = NULL;
-static gboolean opt_startspinner   = TRUE;
 static gboolean allow_update_theme = TRUE;
-static gboolean must_save_accels   = FALSE;
+//atic gboolean must_save_accels   = FALSE;
 
 // global functions
-static void quit ();
 static GSList* awf_load_theme (gchar *directory);
 static int awf_compare_theme (gconstpointer theme1, gconstpointer theme2);
 static void update_text_direction (int direction);
@@ -183,7 +181,6 @@ static GMenuItem* create_menuitem (GtkApplication *app, GMenu *menu, gchar *text
 static void activate_action (GSimpleAction *action, GVariant *parameter, gpointer data);
 static void accels_change (GtkEventControllerKey *controller, guint keyval, guint keycode, GdkModifierType state);
 static void accels_save ();
-static void closedialog (GtkDialog *dialog);
 static void dialog_open ();
 static void dialog_save ();
 static void dialog_message ();
@@ -226,7 +223,6 @@ int main (int argc, gchar **argv) {
 	static struct option long_options[] = {
 		{"version",     no_argument, NULL, 'v'},
 		{"list-themes", no_argument, NULL, 'l'},
-		{"no-spinners", no_argument, NULL, 'n'},
 		{"theme",       required_argument, NULL, 't'},
 		{"screenshot",  required_argument, NULL, 's'},
 		{"help",        no_argument, NULL, 'x'},
@@ -235,7 +231,7 @@ int main (int argc, gchar **argv) {
 		{NULL, 0, NULL, 0}
 	};
 
-	while ((opt = getopt_long (argc, argv, "vlnt:s:hxyz", long_options, NULL)) != -1) {
+	while ((opt = getopt_long (argc, argv, "vlt:s:hxyz", long_options, NULL)) != -1) {
 		switch (opt) {
 			// --version -v
 			case 'v':
@@ -248,9 +244,6 @@ int main (int argc, gchar **argv) {
 				for (iterator = list_user_theme; iterator; iterator = iterator->next)
 					g_printf ("%s\n", (gchar*) iterator->data);
 				return status;
-			// --no-spinners -n
-			case 'n':
-				opt_startspinner = FALSE;
 			// --theme <theme> -t <theme>
 			case 't':
 				if (g_slist_find_custom (list_system_theme, optarg, &awf_compare_theme) ||
@@ -278,11 +271,10 @@ int main (int argc, gchar **argv) {
 						break;
 					#endif
 				}
-				g_printf ("%s\n\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n\n%s\n%s\n",
+				g_printf ("%s\n\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n\n%s\n%s\n",
 					g_strdup_printf (_app("A widget factory - GTK %d.%d"), GTK_MAJOR_VERSION, GTK_MINOR_VERSION),
 					"-v            ", _app("Show version number."),
 					"-l            ", _app("List available themes."),
-					"-n            ", _app("Don't start spinners."),
 					"-t <theme>    ", _app("Run with the specified theme."),
 					"-s <filename> ", g_strdup_printf (_app("Run and save a png screenshot on %s."), "SIGHUP"),
 					"--ltr         ", _app("Start with text from left to right (Left-To-Right)."),
@@ -313,10 +305,6 @@ int main (int argc, gchar **argv) {
 	// --list-themes -l
 	g_application_add_main_option (G_APPLICATION (app), "list-themes", 'l', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
 		_app("List available themes."), NULL);
-
-	// --no-spinners -n
-	g_application_add_main_option (G_APPLICATION (app), "no-spinners", 'n', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
-		_app("Don't start spinners."), NULL);
 
 	// --theme <theme> -t <theme>
 	g_application_add_main_option (G_APPLICATION (app), "theme", 't', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING,
@@ -468,7 +456,6 @@ static void update_theme (gchar *new_theme) { // @common
 
 		g_object_set (gtk_settings_get_default (), "gtk-theme-name", new_theme,  NULL);
 		g_object_get (gtk_settings_get_default (), "gtk-theme-name", &current_theme, NULL);
-		//g_settings_set_string (g_settings_new ("org.mate.Marco.general"), "theme", (gchar*) current_theme);
 
 		gchar *text = g_strdup_printf (_app("Theme %s loaded."), current_theme);
 		update_statusbar (text);
@@ -707,6 +694,69 @@ static void create_window (gpointer app) {
 		create_traditional_menubar (app, gmm);
 		gtk_application_set_menubar (app, G_MENU_MODEL (gmm));
 		gtk_application_window_set_show_menubar (GTK_APPLICATION_WINDOW (window), TRUE);
+
+		const gchar *config = g_getenv ("GTK_CSD");
+		if (config && (strcmp (config, "1") == 0)) {
+
+			GtkWidget *button;
+			GtkWidget *headerbar = gtk_header_bar_new ();
+			gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (headerbar), TRUE);
+
+			gchar *tokens;
+			gboolean closeLeft = FALSE, closeRight = FALSE; // minimize, maximize, close, icon, menu
+			g_object_get (gtk_widget_get_settings (headerbar), "gtk-decoration-layout", &tokens, NULL);
+			if (g_str_has_prefix (tokens, "icon") || g_str_has_prefix (tokens, "menu"))
+				closeLeft = TRUE;
+			else if (g_str_has_suffix (tokens, "icon") || g_str_has_suffix (tokens, "menu"))
+				closeRight = TRUE;
+			g_free (tokens);
+
+			// left
+			if (closeLeft) {
+				button = gtk_image_new_from_icon_name (GETTEXT_PACKAGE);
+				gtk_widget_add_css_class (button, "app-icon");
+				gtk_header_bar_pack_start (GTK_HEADER_BAR (headerbar), button);
+			}
+
+			button = gtk_menu_button_new ();
+			gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (button), G_MENU_MODEL (gmm));
+			gtk_menu_button_set_icon_name (GTK_MENU_BUTTON (button), "open-menu-symbolic");
+			gtk_header_bar_pack_start (GTK_HEADER_BAR (headerbar), button);
+
+			button = gtk_toggle_button_new_with_label ("Btn1");
+			gtk_header_bar_pack_start (GTK_HEADER_BAR (headerbar), button);
+
+			button = gtk_toggle_button_new_with_label ("Btn2");
+			gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
+			gtk_header_bar_pack_start (GTK_HEADER_BAR (headerbar), button);
+
+			button = gtk_toggle_button_new_with_label ("Btn3");
+			gtk_header_bar_pack_start (GTK_HEADER_BAR (headerbar), button);
+
+			// right
+			if (closeRight) {
+				button = gtk_image_new_from_icon_name (GETTEXT_PACKAGE);
+				gtk_widget_add_css_class (button, "app-icon");
+				gtk_header_bar_pack_end (GTK_HEADER_BAR (headerbar), button);
+			}
+
+			button = gtk_menu_button_new ();
+			gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (button), G_MENU_MODEL (gmm));
+			gtk_menu_button_set_icon_name (GTK_MENU_BUTTON (button), "open-menu-symbolic");
+			gtk_header_bar_pack_end (GTK_HEADER_BAR (headerbar), button);
+
+			button = gtk_toggle_button_new_with_label ("Btn6");
+			gtk_header_bar_pack_end (GTK_HEADER_BAR (headerbar), button);
+
+			button = gtk_toggle_button_new_with_label ("Btn5");
+			gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
+			gtk_header_bar_pack_end (GTK_HEADER_BAR (headerbar), button);
+
+			button = gtk_toggle_button_new_with_label ("Btn4");
+			gtk_header_bar_pack_end (GTK_HEADER_BAR (headerbar), button);
+
+			gtk_window_set_titlebar (GTK_WINDOW (window), headerbar);
+		}
 
 		toolbar = BOXH;
 		gtk_widget_add_css_class (toolbar, "primary-toolbar");
@@ -1361,14 +1411,11 @@ static void create_spinners (GtkWidget *root) { // @common
 
 	spinner1 = gtk_spinner_new ();
 	gtk_widget_set_size_request (spinner1, 20, 20);
-	if (opt_startspinner)
-		gtk_spinner_start (GTK_SPINNER (spinner1));
 
 	spinner2 = gtk_spinner_new ();
 	gtk_widget_set_size_request (spinner2, 20, 20);
 	gtk_widget_set_sensitive (spinner2, FALSE);
-	if (opt_startspinner)
-		gtk_spinner_start (GTK_SPINNER (spinner2));
+	//gtk_spinner_start (GTK_SPINNER (spinner2));
 
 	add_to (GTK_BOX (root), spinner1, FALSE, FALSE, 0, 0);
 	add_to (GTK_BOX (root), BOXH, TRUE, TRUE, 0, 0); // empty space
@@ -1481,8 +1528,12 @@ static void create_notebook_tab (GtkWidget *notebook, gchar *text, gboolean clos
 		add_to (GTK_BOX (headbtn), btn, FALSE, FALSE, 0, 0);
 	}
 
+	gtk_widget_set_hexpand (headbtn, FALSE);
+	gtk_widget_set_vexpand (headbtn, FALSE);
+
 	gtk_notebook_append_page (GTK_NOTEBOOK (notebook), content, headbtn);
 	gtk_notebook_set_tab_reorderable (GTK_NOTEBOOK (notebook), content, TRUE);
+	//gtk_notebook_set_tab_detachable (GTK_NOTEBOOK (notebook), content, TRUE);
 
 	// gtk-scroll-tabs for GTK 4 | so same 2.24 - 3.x - 4.x
 	GtkEventController *event;
@@ -1990,9 +2041,11 @@ static void accels_save () {
 
 // dialogs
 
+#if !GTK_CHECK_VERSION (4,10,0)
 static void closedialog (GtkDialog *dialog) {
 	gtk_window_destroy (GTK_WINDOW (dialog));
 }
+#endif
 
 static void dialog_open () {
 

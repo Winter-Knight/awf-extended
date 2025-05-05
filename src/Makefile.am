@@ -1,5 +1,12 @@
 bin_PROGRAMS =
 
+if GTK5
+bin_PROGRAMS += awf-gtk@GTK5_SUFFIX@
+awf_gtk@GTK5_SUFFIX@_SOURCES = awf-gtk5.c
+awf_gtk@GTK5_SUFFIX@_CPPFLAGS = $(GTK5_CFLAGS) $(LIBNOTIFY_CFLAGS) -I/usr/include/gtk-4.0/unix-print
+awf_gtk@GTK5_SUFFIX@_LDADD = $(GTK5_LIBS) $(LIBNOTIFY_LIBS)
+endif
+
 if GTK4
 bin_PROGRAMS += awf-gtk@GTK4_SUFFIX@
 awf_gtk@GTK4_SUFFIX@_SOURCES = awf-gtk4.c
