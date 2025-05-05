@@ -6,19 +6,19 @@ A widget factory is a theme preview application for GTK. It displays the various
 
 GTK 2.24 (Pango 1.56)\
 [<img alt="Preview with GTK 2 - Main window" src="images/thumbs/gtk2.png?raw=true" width="200" />](images/gtk2.png?raw=true)
-[<img alt="Preview with GTK 2 - Menu" src="images/thumbs/gtk2-menu.png?raw=true" width="200" />](images/gtk2-menu.png?raw=true)
-[<img alt="Preview with GTK 2 - RTL - Main window" src="images/thumbs/gtk2-rtl.png?raw=true" width="200" />](images/gtk2-rtl.png?raw=true)
+[<img alt="Preview with GTK 2 - Main window with menu" src="images/thumbs/gtk2-menu.png?raw=true" width="200" />](images/gtk2-menu.png?raw=true)
+[<img alt="Preview with GTK 2 - RTL Main window with menu" src="images/thumbs/gtk2-rtl-menu.png?raw=true" width="200" />](images/gtk2-rtl-menu.png?raw=true)
+[<img alt="Preview with GTK 2 - RTL Main window" src="images/thumbs/gtk2-rtl.png?raw=true" width="200" />](images/gtk2-rtl.png?raw=true)
 
-GTK 3.24 (Pango 1.56)\
+GTK 3.24-classic (Pango 1.56)\
 [<img alt="Preview with GTK 3 - Main window" src="images/thumbs/gtk3.png?raw=true" width="200" />](images/gtk3.png?raw=true)
-[<img alt="Preview with GTK 3 - Menu" src="images/thumbs/gtk3-menu.png?raw=true" width="200" />](images/gtk3-menu.png?raw=true)
-[<img alt="Preview with GTK 3 - RTL - Main window" src="images/thumbs/gtk3-rtl.png?raw=true" width="200" />](images/gtk3-rtl.png?raw=true)
-[<img alt="Preview with GTK 3 - Plus button" src="images/thumbs/gtk3-plus.png?raw=true" width="200" />](images/gtk3-plus.png?raw=true)
+[<img alt="Preview with GTK 3 - Main window with menu" src="images/thumbs/gtk3-menu.png?raw=true" width="200" />](images/gtk3-menu.png?raw=true)
+[<img alt="Preview with GTK 3 - Main window with plus button" src="images/thumbs/gtk3-plus.png?raw=true" width="200" />](images/gtk3-plus.png?raw=true)
+[<img alt="Preview with GTK 3 - CSD main window" src="images/thumbs/gtk3-csd.png?raw=true" width="200" />](images/gtk3-csd.png?raw=true)
 
-GTK 4.12..4.18 (Pango 1.56)\
+GTK 4.12..4.18-classic (Pango 1.56)\
 [<img alt="Preview with GTK 4 - Main window" src="images/thumbs/gtk4.png?raw=true" width="200" />](images/gtk4.png?raw=true)
-[<img alt="Preview with GTK 4 - Menu" src="images/thumbs/gtk4-menu.png?raw=true" width="200" />](images/gtk4-menu.png?raw=true)
-[<img alt="Preview with GTK 4 - RTL - Main window" src="images/thumbs/gtk4-rtl.png?raw=true" width="200" />](images/gtk4-rtl.png?raw=true)
+[<img alt="Preview with GTK 4 - Main window with menu" src="images/thumbs/gtk4-menu.png?raw=true" width="200" />](images/gtk4-menu.png?raw=true)
 
 GTK 5.0 (Pango 1.56)\
 _GtkWindow will be probably deprecated... lol_
@@ -38,9 +38,13 @@ Theme used for the screenshots is available [here](https://github.com/luigifab/h
 * Notebooks tabs are scrollable (GTK 3.x and 4.x, *gtk-scroll-tabs*, like with GTK 2.24).
 * With Ubuntu, menu keyboard shortcuts can also be updated on hover with: `UBUNTU_MENUPROXY= awf-gtk3`
 
+Supported environment variables:
+* `GTK_CSD=1` to enable CSD window
+* `GTK_OVERLAY_SCROLLING=0` to set scrollbars always visible
+
 ## Installation
 
-It require **GTK 2.24** or **GTK 3.0+** *(including 3.24)* or **GTK 4.0+** *(including 4.18)*, *GLIB 2.28+*, *libnotify 0.7+*.
+It require **GTK 2.24** or **GTK 3.0+** *(including 3.24)* or **GTK 4.0+** *(including 4.19)*, *GLIB 2.28+*, *libnotify 0.7+*.
 
 #### Installation for Debian, Devuan, Ubuntu, Trisquel, Linux Mint, MX Linux
 
@@ -60,12 +64,12 @@ It require **GTK 2.24** or **GTK 3.0+** *(including 3.24)* or **GTK 4.0+** *(inc
 
 #### Building from source
 
-* To compile the program with all available major versions of GTK run: `build.sh`
-* To compile the program and create DEB packages for Debian & Ubuntu run: `scripts/debian[-gtkx]/deb.sh`
-* To compile the program and create RPM packages for Fedora run: `scripts/fedora/rpm-gtkx.sh`
-* To compile the program and create RPM packages for Mageia run: `scripts/mageia/rpm-gtkx.sh`
-* To compile the program and create RPM packages for openSUSE run: `scripts/opensuse/rpm-gtkx.sh`
-* To compile the program and create RPM packages for OpenMandriva run: `scripts/openmandriva/rpm-gtkx.sh`
+* To compile with all available major versions of GTK run: `build.sh`
+* To compile and create DEB packages for Debian & Ubuntu run: `scripts/debian[-gtkx]/deb.sh`
+* To compile and create RPM packages for Fedora run: `scripts/fedora/rpm-gtkx.sh`
+* To compile and create RPM packages for Mageia run: `scripts/mageia/rpm-gtkx.sh`
+* To compile and create RPM packages for openSUSE run: `scripts/opensuse/rpm-gtkx.sh`
+* To compile and create RPM packages for OpenMandriva run: `scripts/openmandriva/rpm-gtkx.sh`
 
 #### Alternative installation for Debian, Devuan, Ubuntu, Trisquel, Linux Mint, MX Linux
 
@@ -73,9 +77,9 @@ It require **GTK 2.24** or **GTK 3.0+** *(including 3.24)* or **GTK 4.0+** *(inc
 # PPA: https://launchpad.net/~luigifab/+archive/ubuntu/packages
 # with Debian 12+ you can use mantic+ instead of focal (https://unix.stackexchange.com/a/669008/364800)
 # for Debian you can use bionic for buster, focal for bullseye, oracular or plucky for bookworm and trixie
-# for Devuan you can use bionic for beowulf, focal for chimaera, noble for daedalus
+# for Devuan you can use bionic for beowulf, focal for chimaera, noble for daedalus, oracular or plucky for excalibur and ceres
 # for Trisquel you can use focal for nabia, jammy for aramo
-# for Linux Mint you can use focal for 20.x and 5, jammy for 21.x, noble for 22.x and 6
+# for Linux Mint you can use focal for 20.x and 5, jammy for 21.x, noble for 22.x and 6, oracular or plucky for 7
 # for MX Linux you can use focal for 19.x and 21.x, noble for 23.x
 # for Kali Linux you can use oracular or plucky
 
@@ -129,8 +133,8 @@ ls ~/.themes/yourtheme/gtk-3*/*.css | entr killall -s SIGHUP awf-gtk3
 
 ## Copyright
 
-- Current version: 2.9.0 (04/04/2025)
-- Compatibility: GTK 2.24 / 3.0..3.24 / 4.0..4.18
+- Current version: 3.0.0 (05/05/2025)
+- Compatibility: GTK 2.24 / 3.0..3.24 / 4.0..4.19
 - Links: [luigifab.fr](https://www.luigifab.fr/gtk/awf-extended) - [github.com](https://github.com/luigifab/awf-extended) - [ppa/dpa](https://launchpad.net/~luigifab/+archive/ubuntu/packages)
 
 This program is provided under the terms of the **GNU GPLv3+** license.\

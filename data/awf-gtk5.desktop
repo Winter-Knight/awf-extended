@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=AWF GTK 5
+Comment=A widget factory is a theme preview application for GTK.
+Comment[fr]=La fabrique à widgets est une application d'aperçu de thème pour GTK.
+Exec=awf-gtk5
+Icon=awf-gtk5
+Terminal=false
+Type=Application
+Keywords=gtk;
+Categories=GTK;Development;
+StartupNotify=true

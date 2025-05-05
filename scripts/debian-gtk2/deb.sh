@@ -3,7 +3,7 @@
 
 
 cd "$(dirname "$0")"
-version="2.9.0"
+version="3.0.0"
 gtk="gtk2"
 
 mkdir builder
@@ -31,7 +31,7 @@ fi
 
 
 # create packages for Debian and Ubuntu
-for serie in experimental plucky oracular noble jammy focal bionic xenial trusty; do
+for serie in experimental questing plucky oracular noble jammy focal bionic xenial trusty; do
 
 	printf "\n\n#################################################################### $serie ## awf-gtk2 ##\n\n"
 	if [ $serie = "experimental" ]; then
@@ -50,11 +50,11 @@ for serie in experimental plucky oracular noble jammy focal bionic xenial trusty
 	dh_make -s -y -f ../awf-extended-$version.tar.gz -p awf-$gtk
 
 	rm -rf debian/*/*ex debian/*ex debian/*EX debian/README* debian/*doc*
-	cp scripts/debian-$gtk/* data/*.1 debian/
+	cp scripts/debian-$gtk/* debian/
 	cp scripts/debian/*$gtk* scripts/debian/copyright scripts/debian/metadata scripts/debian/watch scripts/debian/clean debian/
 	head -n -1 debian/*$gtk*.install > debian/install ; rm debian/awf-$gtk.install
 	rm -f debian/deb.sh
-	mv debian/metadata debian/upstream/metadata
+	mkdir debian/upstream ; mv debian/metadata debian/upstream/metadata
 
 	if [ $serie = "experimental" ]; then
 		mv debian/control.debian debian/control
@@ -102,7 +102,7 @@ for serie in experimental plucky oracular noble jammy focal bionic xenial trusty
 			sed -i 's/experimental/'$serie'/g' debian/changelog
 			sed -i 's/-1) /-1+'$serie') /' debian/changelog
 		fi
-		rm -f debian/*.mx debian/*.debian
+		rm -f debian/*.mx debian/*.debian debian/*.ubuntu
 		echo "=========================== buildpackage ($serie) =="
 		dpkg-buildpackage -us -uc -ui -d -S
 	fi
@@ -112,7 +112,7 @@ for serie in experimental plucky oracular noble jammy focal bionic xenial trusty
 	if [ $serie = "experimental" ]; then
 		debsign awf-${gtk}_$version*.changes
 		echo "=========================== lintian ($serie) =="
-		lintian -EviIL +pedantic awf-$gtk*$version*.deb
+		lintian -EviIL +pedantic awf-${gtk}_$version*.changes
 	elif [ $serie = "unstable" ]; then
 		debsign awf-$gtk*$version-*_source.changes
 	else
@@ -122,6 +122,7 @@ for serie in experimental plucky oracular noble jammy focal bionic xenial trusty
 done
 
 printf "\n\n"
+rm builder/*dbgsym*deb
 ls -dlth "$PWD/"builder/*.deb "$PWD/"builder/*.changes
 printf "\n"
 rm -rf builder/*/

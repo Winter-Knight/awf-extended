@@ -3,14 +3,17 @@
 # Fedora: configure: error: C compiler cannot create executables? remove and reinstall glibc-devel gcc
 
 cd "$(dirname "$0")"
-version="2.9.0"
+version="3.0.0"
 gtk="gtk2"
 
 mkdir -p builder ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 find builder/* ! -name "*$version*.rpm" ! -name "*$version*.gz" -exec rm -rf {} + 2>/dev/null
+rm -f ~/rpmbuild/SOURCES/awf-$gtk-$version.tar.gz
 
 # copy to a tmp directory
 if [ true ]; then
+	rm awf-$gtk.spec
+	wget https://raw.githubusercontent.com/luigifab/awf-extended/refs/tags/v$version/scripts/fedora/awf-$gtk.spec
 	chmod 644 awf-$gtk.spec
 	spectool -g -R awf-$gtk.spec
 else
@@ -41,6 +44,7 @@ rpm --checksig builder/awf-$gtk*.rpm
 echo "==========================="
 rpmlint awf-$gtk.spec builder/awf-$gtk*.rpm
 echo "==========================="
+rm builder/*debug*rpm
 ls -dlth "$PWD/"builder/*.rpm
 echo "==========================="
 

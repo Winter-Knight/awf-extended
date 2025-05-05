@@ -3,7 +3,7 @@
 
 
 cd "$(dirname "$0")"
-version="2.9.0"
+version="3.0.0"
 
 
 mkdir builder
@@ -31,7 +31,7 @@ fi
 
 
 # create packages for Debian and Ubuntu and MX Linux
-for serie in experimental unstable oracular mx23; do
+for serie in experimental unstable plucky mx23; do
 
 	printf "\n\n#################################################################### $serie ## awf-gtk ##\n\n"
 	if [ $serie = "experimental" ]; then
@@ -50,9 +50,9 @@ for serie in experimental unstable oracular mx23; do
 	dh_make -s -y -f ../awf-extended-$version.tar.gz -p awf-gtk
 
 	rm -rf debian/*/*ex debian/*ex debian/*EX debian/README* debian/*doc*
-	cp scripts/debian/* data/*.1 debian/
+	cp scripts/debian/* debian/
 	rm -f debian/deb.sh
-	mv debian/metadata debian/upstream/metadata
+	mkdir debian/upstream ; mv debian/metadata debian/upstream/metadata
 
 
 
@@ -65,7 +65,7 @@ for serie in experimental unstable oracular mx23; do
 		# debhelper: experimental:13 focal/mx19/mx21:12 bionic:9 xenial:9 trusty:9
 		if [ $serie = "unstable" ]; then
 			mv debian/control.debian debian/control
-			sed -i -e 's/#sed -i/sed -i/g' -e 's/ "gtk2"//g' debian/rules
+			sed -i -e 's/ --disable-gtk5/ --disable-gtk2 --disable-gtk5/g' -e 's/ "gtk2"//g' -e 's/ "gtk5"//g' debian/rules
 		elif [ $serie = "mx19" ] || [ $serie = "mx21" ]; then
 			mv debian/control.mx debian/control
 			sed -i 's/debhelper-compat (= 13)/debhelper-compat (= 12)/g' debian/control
@@ -97,12 +97,13 @@ for serie in experimental unstable oracular mx23; do
 			sed -i 's/-1) /-1~'$serie'+1) /' debian/changelog
 		elif [ $serie = "unstable" ]; then
 			mv debian/changelog.debian debian/changelog
+			rm debian/*gtk2*
 		else
 			mv debian/changelog.ubuntu debian/changelog
 			sed -i 's/experimental/'$serie'/g' debian/changelog
 			sed -i 's/-1) /-1+'$serie') /' debian/changelog
 		fi
-		rm -f debian/*.mx debian/*.debian
+		rm -f debian/*.mx debian/*.debian debian/*.ubuntu
 		echo "=========================== buildpackage ($serie) =="
 		dpkg-buildpackage -us -uc -ui -d -S
 	fi
@@ -112,7 +113,7 @@ for serie in experimental unstable oracular mx23; do
 	if [ $serie = "experimental" ]; then
 		debsign awf-gtk_$version*.changes
 		echo "=========================== lintian ($serie) =="
-		lintian -EviIL +pedantic awf-gtk*$version*.deb
+		lintian -EviIL +pedantic awf-gtk_$version*.changes
 	elif [ $serie = "unstable" ]; then
 		debsign awf-gtk*$version-*_source.changes
 	else
@@ -122,6 +123,7 @@ for serie in experimental unstable oracular mx23; do
 done
 
 printf "\n\n"
+rm builder/*dbgsym*deb
 ls -dlth "$PWD/"builder/*.deb "$PWD/"builder/*.changes
 printf "\n"
 rm -rf builder/*/

@@ -1,12 +1,12 @@
 Name:          awf-gtk4
-Version:       2.9.0
+Version:       3.0.0
 Release:       1
 Summary:       Theme preview application for GTK 4
 Summary(fr):   Application d'aperçu de thème pour GTK 4
-License:       GPLv3+
+License:       GPL-3.0-or-later
 Group:         Development/Basic
 URL:           https://github.com/luigifab/awf-extended
-Source0:       %{url}/archive/v%{version}/awf-extended-%{version}.tar.gz
+Source0:       %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 
 BuildRequires: aspell-fr
 BuildRequires: autoconf
@@ -38,12 +38,10 @@ Ce paquet fournit la version GTK 4.}
 
 %prep
 %setup -q -n awf-extended-%{version}
-sed -i 's/ -eq 2/ -eq -1/g' configure.ac
-sed -i 's/ -eq 3/ -eq -1/g' configure.ac
 
 %build
 autoreconf -fi
-%configure
+%configure --enable-only-gtk4
 %make_build
 
 %install
@@ -56,6 +54,7 @@ for file in data/icons/*/*/awf.png; do mv $file ${file/\/awf.png/\/%{name}.png};
 for file in data/icons/*/*/awf.svg; do mv $file ${file/\/awf.svg/\/%{name}.svg}; done
 cp -a data/icons/* %{buildroot}%{_datadir}/icons/hicolor/
 
+install -Dpm 644 data/%{name}.bash %{buildroot}%{_datadir}/bash-completion/completions/%{name}
 install -Dpm 644 data/%{name}.1 %{buildroot}%{_mandir}/man1/%{name}.1
 install -Dpm 644 data/%{name}.fr.1 %{buildroot}%{_mandir}/fr/man1/%{name}.1
 
@@ -73,12 +72,42 @@ done
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/icons/hicolor/*/apps/%{name}.png
 %{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
+%{_datadir}/bash-completion/completions/%{name}
 %{_mandir}/man1/%{name}.1*
 
 
 %changelog
-* Fri Apr 04 2025 Fabrice Creuzot <code@luigifab.fr> - 2.9.0-1
+* Mon May 05 2025 Fabrice Creuzot <code@luigifab.fr> - 3.0.0-1
 - New upstream release
+- Add support for CSD window
+- Add --enable-only-gtkx and --disable-gtkx options
 
-* Mon Mar 03 2025 Fabrice Creuzot <code@luigifab.fr> - 2.8.1-1
-- Initial OpenMandriva package release
+* Fri Apr 04 2025 Fabrice Creuzot <code@luigifab.fr> - 2.9.0-1
+- Initial OpenMandriva package release (Closes: #3168)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+%:
+	dh $@ --with bash-completion
+
+override_dh_auto_configure:
+	dh_auto_configure -- --enable-only-gtk5
+
+override_dh_update_autotools_config:
+	cp -ar data/icons/ icons-gtk5/
+	for file in icons-gtk5/*/*/awf.png; do mv $$file `dirname $$file`/awf-gtk5.png; done
+	for file in icons-gtk5/*/*/awf.svg; do mv $$file `dirname $$file`/awf-gtk5.svg; done
+	for file in src/po/*.po; do \
+		code=`basename "$$file" .po`; \
+		mkdir -p locale-gtk5/$$code/LC_MESSAGES/; \
+		msgfmt src/po/$$code.po -o locale-gtk5/$$code/LC_MESSAGES/awf-gtk5.mo; \
+	done

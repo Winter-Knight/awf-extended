@@ -1,6 +1,6 @@
 /**
  * Forked  M/10/03/2020
- * Updated L/31/03/2025
+ * Updated D/27/04/2025
  *
  * Copyright 2020-2025 | Fabrice Creuzot (luigifab) <code~luigifab~fr>
  * https://github.com/luigifab/awf-extended
@@ -148,12 +148,10 @@ static int current_direction       = GTK_TEXT_DIR_NONE;
 static gchar *current_theme        = "auto";
 static gchar *opt_theme            = "auto";
 static gchar *opt_screenshot       = NULL;
-static gboolean opt_startspinner   = TRUE;
 static gboolean allow_update_theme = TRUE;
 static gboolean must_save_accels   = FALSE;
 
 // global functions
-static void quit ();
 static GSList* awf_load_theme (gchar *directory);
 static int awf_compare_theme (gconstpointer theme1, gconstpointer theme2);
 static void update_text_direction (int direction);
@@ -241,7 +239,6 @@ int main (int argc, gchar **argv) {
 	static struct option long_options[] = {
 		{"version",     no_argument, NULL, 'v'},
 		{"list-themes", no_argument, NULL, 'l'},
-		{"no-spinners", no_argument, NULL, 'n'},
 		{"theme",       required_argument, NULL, 't'},
 		{"screenshot",  required_argument, NULL, 's'},
 		{"help",        no_argument, NULL, 'x'},
@@ -250,7 +247,7 @@ int main (int argc, gchar **argv) {
 		{NULL, 0, NULL, 0}
 	};
 
-	while ((opt = getopt_long (argc, argv, "vlnt:s:hxyz", long_options, NULL)) != -1) {
+	while ((opt = getopt_long (argc, argv, "vlt:s:hxyz", long_options, NULL)) != -1) {
 		switch (opt) {
 			// --version -v
 			case 'v':
@@ -263,9 +260,6 @@ int main (int argc, gchar **argv) {
 				for (iterator = list_user_theme; iterator; iterator = iterator->next)
 					g_printf ("%s\n", (gchar*) iterator->data);
 				return status;
-			// --no-spinners -n
-			case 'n':
-				opt_startspinner = FALSE;
 			// --theme <theme> -t <theme>
 			case 't':
 				if (g_slist_find_custom (list_system_theme, optarg, &awf_compare_theme) ||
@@ -293,11 +287,10 @@ int main (int argc, gchar **argv) {
 						break;
 					#endif
 				}
-				g_printf ("%s\n\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n\n%s\n%s\n",
+				g_printf ("%s\n\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n  %s %s\n\n%s\n%s\n",
 					g_strdup_printf (_app("A widget factory - GTK %d.%d"), GTK_MAJOR_VERSION, GTK_MINOR_VERSION),
 					"-v            ", _app("Show version number."),
 					"-l            ", _app("List available themes."),
-					"-n            ", _app("Don't start spinners."),
 					"-t <theme>    ", _app("Run with the specified theme."),
 					"-s <filename> ", g_strdup_printf (_app("Run and save a png screenshot on %s."), "SIGHUP"),
 					"--ltr         ", _app("Start with text from left to right (Left-To-Right)."),
@@ -457,7 +450,6 @@ static void update_theme (gchar *new_theme) { // @common
 
 		g_object_set (gtk_settings_get_default (), "gtk-theme-name", new_theme,  NULL);
 		g_object_get (gtk_settings_get_default (), "gtk-theme-name", &current_theme, NULL);
-		//g_settings_set_string (g_settings_new ("org.mate.Marco.general"), "theme", (gchar*) current_theme);
 
 		gchar *text = g_strdup_printf (_app("Theme %s loaded."), current_theme);
 		update_statusbar (text);
@@ -874,7 +866,9 @@ static void create_toolbar_items (GtkWidget *root) { // @common gtk2/3
 	gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (tool1), "gtk-open");
 	g_signal_connect (tool1, "clicked", G_CALLBACK (dialog_open), NULL);
 	menu = gtk_menu_new ();
-	create_menuitem (menu, "Menu item", FALSE, NULL, NULL, NULL);
+	create_menuitem (menu, "Menu item 1", FALSE, NULL, NULL, NULL);
+	create_menuitem (menu, "Menu item 2", FALSE, NULL, NULL, NULL);
+	create_menuitem (menu, "Menu item 3", FALSE, NULL, NULL, NULL);
 	gtk_widget_show_all (menu); // very important
 	gtk_menu_tool_button_set_menu (GTK_MENU_TOOL_BUTTON (tool1), menu);
 
@@ -1246,14 +1240,11 @@ static void create_spinners (GtkWidget *root) { // @common
 
 	spinner1 = gtk_spinner_new ();
 	gtk_widget_set_size_request (spinner1, 20, 20);
-	if (opt_startspinner)
-		gtk_spinner_start (GTK_SPINNER (spinner1));
 
 	spinner2 = gtk_spinner_new ();
 	gtk_widget_set_size_request (spinner2, 20, 20);
 	gtk_widget_set_sensitive (spinner2, FALSE);
-	if (opt_startspinner)
-		gtk_spinner_start (GTK_SPINNER (spinner2));
+	//gtk_spinner_start (GTK_SPINNER (spinner2));
 
 	add_to (GTK_BOX (root), spinner1, FALSE, FALSE, 0, 0);
 	add_to (GTK_BOX (root), BOXH, TRUE, TRUE, 0, 0); // empty space
@@ -1376,6 +1367,7 @@ static void create_notebook_tab (GtkWidget *notebook, gchar *text, gboolean clos
 	gtk_widget_show_all (headbtn);
 	gtk_notebook_append_page (GTK_NOTEBOOK (notebook), content, headbtn);
 	gtk_notebook_set_tab_reorderable (GTK_NOTEBOOK (notebook), content, TRUE);
+	//gtk_notebook_set_tab_detachable (GTK_NOTEBOOK (notebook), content, TRUE);
 }
 
 static void create_treview (GtkWidget *root) { // @common 80%
