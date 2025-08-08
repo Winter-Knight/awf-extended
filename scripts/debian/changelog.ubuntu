@@ -1,3 +1,9 @@
+awf-gtk (3.1.0-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Fabrice Creuzot <code@luigifab.fr>  Fri, 08 Aug 2025 20:00:00 +0000
+
 awf-gtk (3.0.0-1) experimental; urgency=low
 
   * New upstream release
@@ -9,6 +15,7 @@ awf-gtk (3.0.0-1) experimental; urgency=low
 awf-gtk (2.9.0-1) experimental; urgency=low
 
   * New upstream release
+  * Fix building error with GLIB 2.83 and/or with GCC 15 (Closes: #1096351)
 
  -- Fabrice Creuzot <code@luigifab.fr>  Fri, 04 Apr 2025 20:00:00 +0000
 

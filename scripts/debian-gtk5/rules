@@ -8,7 +8,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 override_dh_auto_configure:
 	dh_auto_configure -- --enable-only-gtk5
 
-override_dh_update_autotools_config:
+execute_before_dh_install:
 	cp -ar data/icons/ icons-gtk5/
 	for file in icons-gtk5/*/*/awf.png; do mv $$file `dirname $$file`/awf-gtk5.png; done
 	for file in icons-gtk5/*/*/awf.svg; do mv $$file `dirname $$file`/awf-gtk5.svg; done

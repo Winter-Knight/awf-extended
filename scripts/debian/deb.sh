@@ -3,7 +3,7 @@
 
 
 cd "$(dirname "$0")"
-version="3.0.0"
+version="3.1.0"
 
 
 mkdir builder
@@ -31,7 +31,7 @@ fi
 
 
 # create packages for Debian and Ubuntu and MX Linux
-for serie in experimental unstable plucky mx23; do
+for serie in experimental unstable questing mx23 mx21; do
 
 	printf "\n\n#################################################################### $serie ## awf-gtk ##\n\n"
 	if [ $serie = "experimental" ]; then
@@ -59,6 +59,7 @@ for serie in experimental unstable plucky mx23; do
 	if [ $serie = "experimental" ]; then
 		mv debian/control.ubuntu debian/control # yes
 		mv debian/changelog.debian debian/changelog
+		rm -f debian/*.mx debian/*.mxo debian/*.debian debian/*.ubuntu
 		echo "=========================== buildpackage ($serie) =="
 		dpkg-buildpackage -us -uc
 	else
@@ -67,7 +68,7 @@ for serie in experimental unstable plucky mx23; do
 			mv debian/control.debian debian/control
 			sed -i -e 's/ --disable-gtk5/ --disable-gtk2 --disable-gtk5/g' -e 's/ "gtk2"//g' -e 's/ "gtk5"//g' debian/rules
 		elif [ $serie = "mx19" ] || [ $serie = "mx21" ]; then
-			mv debian/control.mx debian/control
+			mv debian/control.mxo debian/control
 			sed -i 's/debhelper-compat (= 13)/debhelper-compat (= 12)/g' debian/control
 		elif [ $serie = "focal" ]; then
 			mv debian/control.ubuntu debian/control
@@ -75,48 +76,61 @@ for serie in experimental unstable plucky mx23; do
 		elif [ $serie = "bionic" ]; then
 			mv debian/control.ubuntu debian/control
 			sed -i 's/dh $@/dh $@ --with autoreconf/g' debian/rules
+			sed -i 's/execute_before_dh_install:/override_dh_update_autotools_config:/g' debian/rules
 			sed -i 's/debhelper-compat (= 13)/debhelper-compat (= 9), dh-autoreconf/g' debian/control
 		elif [ $serie = "xenial" ]; then
 			mv debian/control.ubuntu debian/control
 			sed -i 's/dh $@/dh $@ --with autoreconf/g' debian/rules
+			sed -i 's/execute_before_dh_install:/override_dh_update_autotools_config:/g' debian/rules
 			sed -i 's/debhelper-compat (= 13)/debhelper (>= 9), dh-autoreconf/g' debian/control
 			sed -i ':a;N;$!ba;s/Rules-Requires-Root: no\n//g' debian/control
 			echo 9 > debian/compat
 		elif [ $serie = "trusty" ]; then
 			mv debian/control.ubuntu debian/control
 			sed -i 's/dh $@/dh $@ --with autotools_dev,autoreconf/g' debian/rules
-			sed -i 's/override_dh_update_autotools_config/override_dh_autotools-dev_updateconfig/g' debian/rules
+			sed -i 's/execute_before_dh_install:/override_dh_autotools-dev_updateconfig:/g' debian/rules
 			sed -i 's/debhelper-compat (= 13)/debhelper (>= 9), autotools-dev, dh-autoreconf/g' debian/control
 			sed -i ':a;N;$!ba;s/Rules-Requires-Root: no\n//g' debian/control
 			echo 9 > debian/compat
 		else
 			mv debian/control.ubuntu debian/control
 		fi
-		if [ $serie = "mx23" ] || [ $serie = "mx21" ] || [ $serie = "mx19" ]; then
+		if [ $serie = "mx23" ]; then
 			mv debian/changelog.mx debian/changelog
 			sed -i 's/-1) /-1~'$serie'+1) /' debian/changelog
+			rm debian/*gtk5*
+			cat debian/clean | grep -v gtk5 | grep -v gtk6 > debian/clean
+		elif [ $serie = "mx21" ] || [ $serie = "mx19" ]; then
+			mv debian/changelog.mx debian/changelog
+			sed -i 's/-1) /-1~'$serie'+1) /' debian/changelog
+			rm debian/*gtk4* debian/*gtk5*
+			cat debian/clean | grep -v gtk4 | grep -v gtk5 > debian/clean
 		elif [ $serie = "unstable" ]; then
 			mv debian/changelog.debian debian/changelog
-			rm debian/*gtk2*
+			rm debian/*gtk2* debian/*gtk5*
+			cat debian/clean | grep -v gtk2 | grep -v gtk5 > debian/clean
 		else
 			mv debian/changelog.ubuntu debian/changelog
 			sed -i 's/experimental/'$serie'/g' debian/changelog
 			sed -i 's/-1) /-1+'$serie') /' debian/changelog
+			rm debian/*gtk5*
+			cat debian/clean | grep -v gtk5 | grep -v gtk6 > debian/clean
 		fi
-		rm -f debian/*.mx debian/*.debian debian/*.ubuntu
+		rm -f debian/*.mx debian/*.mxo debian/*.debian debian/*.ubuntu
 		echo "=========================== buildpackage ($serie) =="
 		dpkg-buildpackage -us -uc -ui -d -S
 	fi
-	echo "=========================== debsign ($serie) =="
 	cd ..
 
 	if [ $serie = "experimental" ]; then
-		debsign awf-gtk_$version*.changes
 		echo "=========================== lintian ($serie) =="
 		lintian -EviIL +pedantic awf-gtk_$version*.changes
+		rm *amd64.changes
 	elif [ $serie = "unstable" ]; then
+		echo "=========================== debsign ($serie) =="
 		debsign awf-gtk*$version-*_source.changes
 	else
+		echo "=========================== debsign ($serie) =="
 		debsign awf-gtk*$version*$serie*source.changes
 	fi
 	cd ..

@@ -1,5 +1,5 @@
 pkgname=awf-gtk3
-pkgver=3.0.0
+pkgver=3.1.0
 pkgrel=1
 pkgdesc="Theme preview application for GTK 3"
 arch=('x86_64')
@@ -13,7 +13,6 @@ sha256sums=("...")
 
 prepare() {
   mv "awf-extended-$pkgver" "$pkgname-$pkgver"
-  cd "$pkgname-$pkgver"
 }
 
 build() {
