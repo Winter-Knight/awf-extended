@@ -8,7 +8,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 override_dh_auto_configure:
 	dh_auto_configure -- --disable-gtk2 --disable-gtk5
 
-override_dh_update_autotools_config:
+execute_before_dh_install:
 	for gtk in "gtk3" "gtk4"; do \
 		cp -ar data/icons/ icons-$$gtk/; \
 		for file in icons-$$gtk/*/*/awf.png; do mv $$file `dirname $$file`/awf-$$gtk.png; done; \

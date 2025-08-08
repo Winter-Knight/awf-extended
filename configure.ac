@@ -1,4 +1,4 @@
-AC_INIT([A widget factory], [3.0.0])
+AC_INIT([A widget factory], [3.1.0])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_AUX_DIR([build-aux])
 
@@ -93,7 +93,7 @@ AC_SUBST(GTK3_LIBS)
 AC_SUBST(GTK3_SUFFIX)
 
 # GTK 2
-PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.24, GTK2_SUFFIX=2, GTK2_SUFFIX=0)
+PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.24.0, GTK2_SUFFIX=2, GTK2_SUFFIX=0)
 if test "x$enable_gtk2" = "xyes"; then
   AM_CONDITIONAL([GTK2], [test "$GTK2_SUFFIX" -eq 2])
 else

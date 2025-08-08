@@ -3,7 +3,7 @@
 
 
 cd "$(dirname "$0")"
-version="3.0.0"
+version="3.1.0"
 gtk="gtk4"
 
 mkdir builder
@@ -51,7 +51,7 @@ for serie in experimental questing plucky oracular noble jammy; do
 
 	rm -rf debian/*/*ex debian/*ex debian/*EX debian/README* debian/*doc*
 	cp scripts/debian-$gtk/* debian/
-	cp scripts/debian/*$gtk* scripts/debian/copyright scripts/debian/metadata scripts/debian/watch scripts/debian/clean debian/
+	cp scripts/debian/*$gtk* scripts/debian/copyright scripts/debian/metadata scripts/debian/watch debian/
 	head -n -1 debian/*$gtk*.install > debian/install ; rm debian/awf-$gtk.install
 	rm -f debian/deb.sh
 	mkdir debian/upstream ; mv debian/metadata debian/upstream/metadata
@@ -59,6 +59,7 @@ for serie in experimental questing plucky oracular noble jammy; do
 	if [ $serie = "experimental" ]; then
 		mv debian/control.debian debian/control
 		mv debian/changelog.debian debian/changelog
+		rm -f debian/*.mx debian/*.debian debian/*.ubuntu
 		echo "=========================== buildpackage ($serie) =="
 		dpkg-buildpackage -us -uc
 	else
@@ -75,17 +76,19 @@ for serie in experimental questing plucky oracular noble jammy; do
 		elif [ $serie = "bionic" ]; then
 			mv debian/control.ubuntu debian/control
 			sed -i 's/dh $@/dh $@ --with autoreconf/g' debian/rules
+			sed -i 's/execute_before_dh_install:/override_dh_update_autotools_config:/g' debian/rules
 			sed -i 's/debhelper-compat (= 13)/debhelper-compat (= 9), dh-autoreconf/g' debian/control
 		elif [ $serie = "xenial" ]; then
 			mv debian/control.ubuntu debian/control
 			sed -i 's/dh $@/dh $@ --with autoreconf/g' debian/rules
+			sed -i 's/execute_before_dh_install:/override_dh_update_autotools_config:/g' debian/rules
 			sed -i 's/debhelper-compat (= 13)/debhelper (>= 9), dh-autoreconf/g' debian/control
 			sed -i ':a;N;$!ba;s/Rules-Requires-Root: no\n//g' debian/control
 			echo 9 > debian/compat
 		elif [ $serie = "trusty" ]; then
 			mv debian/control.ubuntu debian/control
 			sed -i 's/dh $@/dh $@ --with autotools_dev,autoreconf/g' debian/rules
-			sed -i 's/override_dh_update_autotools_config/override_dh_autotools-dev_updateconfig/g' debian/rules
+			sed -i 's/execute_before_dh_install:/override_dh_autotools-dev_updateconfig:/g' debian/rules
 			sed -i 's/debhelper-compat (= 13)/debhelper (>= 9), autotools-dev, dh-autoreconf/g' debian/control
 			sed -i ':a;N;$!ba;s/Rules-Requires-Root: no\n//g' debian/control
 			echo 9 > debian/compat
@@ -106,16 +109,17 @@ for serie in experimental questing plucky oracular noble jammy; do
 		echo "=========================== buildpackage ($serie) =="
 		dpkg-buildpackage -us -uc -ui -d -S
 	fi
-	echo "=========================== debsign ($serie) =="
 	cd ..
 
 	if [ $serie = "experimental" ]; then
-		debsign awf-${gtk}_$version*.changes
 		echo "=========================== lintian ($serie) =="
 		lintian -EviIL +pedantic awf-${gtk}_$version*.changes
+		rm *amd64.changes
 	elif [ $serie = "unstable" ]; then
+		echo "=========================== debsign ($serie) =="
 		debsign awf-$gtk*$version-*_source.changes
 	else
+		echo "=========================== debsign ($serie) =="
 		debsign awf-$gtk*$version*$serie*source.changes
 	fi
 	cd ..

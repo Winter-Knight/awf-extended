@@ -1,5 +1,5 @@
 Name:          awf-gtk3
-Version:       3.0.0
+Version:       3.1.0
 Release:       1%{?dist}
 Summary:       Theme preview application for GTK 3
 Summary(fr):   Application d'aperçu de thème pour GTK 3
@@ -77,6 +77,10 @@ done
 
 
 %changelog
+* Fri Aug 08 2025 Fabrice Creuzot <code@luigifab.fr> - 3.1.0-1
+- New upstream release
+- Add support for CSD dialog
+
 * Mon May 05 2025 Fabrice Creuzot <code@luigifab.fr> - 3.0.0-1
 - New upstream release
 - Add support for CSD window

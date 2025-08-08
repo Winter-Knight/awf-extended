@@ -8,7 +8,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 override_dh_auto_configure:
 	dh_auto_configure -- --enable-only-gtk4
 
-override_dh_update_autotools_config:
+execute_before_dh_install:
 	cp -ar data/icons/ icons-gtk4/
 	for file in icons-gtk4/*/*/awf.png; do mv $$file `dirname $$file`/awf-gtk4.png; done
 	for file in icons-gtk4/*/*/awf.svg; do mv $$file `dirname $$file`/awf-gtk4.svg; done

@@ -75,13 +75,13 @@ It require **GTK 2.24** or **GTK 3.0+** *(including 3.24)* or **GTK 4.0+** *(inc
 
 ```bash
 # PPA: https://launchpad.net/~luigifab/+archive/ubuntu/packages
-# with Debian 12+ you can use mantic+ instead of focal (https://unix.stackexchange.com/a/669008/364800)
-# for Debian you can use bionic for buster, focal for bullseye, oracular or plucky for bookworm and trixie
-# for Devuan you can use bionic for beowulf, focal for chimaera, noble for daedalus, oracular or plucky for excalibur and ceres
+# with Debian 12+/Bookworm+ you can use mantic+ instead of focal (https://unix.stackexchange.com/a/669008/364800)
+# for Debian you can use focal for buster, jammy for bullseye, oracular or noble for bookworm, questing or plucky for trixie
+# for Devuan you can use focal for beowulf, jammy for chimaera, oracular or noble for daedalus, questing or plucky for excalibur and ceres
 # for Trisquel you can use focal for nabia, jammy for aramo
-# for Linux Mint you can use focal for 20.x and 5, jammy for 21.x, noble for 22.x and 6, oracular or plucky for 7
-# for MX Linux you can use focal for 19.x and 21.x, noble for 23.x
-# for Kali Linux you can use oracular or plucky
+# for Linux Mint you can use focal for 20.x and 4/debbie, jammy for 21.x and 5/elsie, noble for 22.x and 6/faye, questing or plucky for 7/gigi
+# for MX Linux you can use focal for 19.x, jammy for 21.x, oracular or noble for 23.x
+# for Kali Linux you can use questing or plucky
 
 sudo add-apt-repository ppa:luigifab/packages
 sudo apt update
@@ -133,7 +133,7 @@ ls ~/.themes/yourtheme/gtk-3*/*.css | entr killall -s SIGHUP awf-gtk3
 
 ## Copyright
 
-- Current version: 3.0.0 (05/05/2025)
+- Current version: 3.1.0 (08/08/2025)
 - Compatibility: GTK 2.24 / 3.0..3.24 / 4.0..4.19
 - Links: [luigifab.fr](https://www.luigifab.fr/gtk/awf-extended) - [github.com](https://github.com/luigifab/awf-extended) - [ppa/dpa](https://launchpad.net/~luigifab/+archive/ubuntu/packages)
 

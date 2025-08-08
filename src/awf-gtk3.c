@@ -1,6 +1,6 @@
 /**
  * Forked  M/10/03/2020
- * Updated D/27/04/2025
+ * Updated L/21/07/2025
  *
  * Copyright 2020-2025 | Fabrice Creuzot (luigifab) <code~luigifab~fr>
  * https://github.com/luigifab/awf-extended
@@ -26,6 +26,7 @@
  *
  *
  * Translations update:
+ *  https://github.com/GNOME/gtk/blob/3.24.49/po/fr.po
  *  xgettext --keyword=_app -d awf -o src/awf.pot -k_ -s src/awf-gtk*.c
  *  msgmerge src/po/fr.po src/awf.pot -o src/po/fr.po
  *  msgfmt src/po/fr.po -o src/fr/LC_MESSAGES/awf.mo
@@ -82,42 +83,38 @@
 #define gtk_micro_version gtk_get_micro_version ()
 
 #define AWF_OPEN "<AWF>/Test/Open"
-#define AWF_RECE "<AWF>/Test/Recent"
-#define AWF_CALE "<AWF>/Test/Calendar"
-#define AWF_SCAT "<AWF>/Test/ScalesTop"
-#define AWF_SCAB "<AWF>/Test/ScalesBottom"
-#define AWF_SCAR "<AWF>/Test/ScalesRight"
-#define AWF_SCAL "<AWF>/Test/ScalesLeft"
 #define AWF_SAVE "<AWF>/Test/Save"
 #define AWF_REFR "<AWF>/Test/Refresh"
+#define AWF_RECE "<AWF>/Test/Recent"
+#define AWF_CALE "<AWF>/Test/Calendar"
+#define AWF_SCAL "<AWF>/Test/Scales"
 #define AWF_PROP "<AWF>/Test/Properties"
 #define AWF_PRSE "<AWF>/Test/PrintSetup"
 #define AWF_PRIN "<AWF>/Test/Print"
-#define AWF_ABOU "<AWF>/Test/About"
 #define AWF_MCUT "<AWF>/Test/More/Cut"
 #define AWF_MCOP "<AWF>/Test/More/Copy"
 #define AWF_MPAS "<AWF>/Test/More/Past"
 #define AWF_CLOS "<AWF>/Test/Close"
 #define AWF_QUIT "<AWF>/Test/Quit"
+#define AWF_INSP "<AWF>/Test/Inspector"
+#define AWF_ABOU "<AWF>/Test/About"
 
 #define AWF_ACCEL_OPEN "<Control>O"
-#define AWF_ACCEL_RECE NULL
-#define AWF_ACCEL_CALE NULL
-#define AWF_ACCEL_SCAT NULL
-#define AWF_ACCEL_SCAB NULL
-#define AWF_ACCEL_SCAR NULL
-#define AWF_ACCEL_SCAL NULL
 #define AWF_ACCEL_SAVE "<Control>S"
 #define AWF_ACCEL_REFR "F5"
+#define AWF_ACCEL_RECE NULL
+#define AWF_ACCEL_CALE NULL
+#define AWF_ACCEL_SCAL NULL
 #define AWF_ACCEL_PROP "<Alt>Return"
 #define AWF_ACCEL_PRSE "<Control><Shift>P"
 #define AWF_ACCEL_PRIN "<Control>P"
-#define AWF_ACCEL_ABOU "F1"
 #define AWF_ACCEL_MCUT "<Control>X"
 #define AWF_ACCEL_MCOP "<Control>C"
 #define AWF_ACCEL_MPAS "<Control>V"
 #define AWF_ACCEL_CLOS "<Control>W"
 #define AWF_ACCEL_QUIT "<Control>Q"
+#define AWF_ACCEL_INSP NULL
+#define AWF_ACCEL_ABOU "F1"
 
 // @see https://stackoverflow.com/a/10018581/2980105
 #define _app(String) dgettext (GETTEXT_PACKAGE, String)
@@ -126,7 +123,7 @@
 // global variables
 static GSList *list_system_theme = NULL;
 static GSList *list_user_theme = NULL;
-static GtkWidget *window = NULL, *toolbar = NULL, *toolbarentry = NULL, *statusbar = NULL;
+static GtkWidget *window = NULL, *menubar = NULL, *toolbar = NULL, *toolbarentry = NULL, *statusbar = NULL;
 static GtkWidget *volume1 = NULL, *volume2 = NULL;
 static GtkWidget *progressbar1 = NULL, *progressbar2 = NULL, *progressbar3 = NULL, *progressbar4 = NULL, *progressbar8 = NULL, *progressbar9 = NULL;
 static GtkWidget *scale1 = NULL, *scale2 = NULL, *scale3 = NULL, *scale4 = NULL, *scale5 = NULL, *scale6 = NULL;
@@ -144,6 +141,7 @@ static gboolean must_save_accels   = FALSE;
 // global functions
 static GSList* awf_load_theme (gchar *directory);
 static int awf_compare_theme (gconstpointer theme1, gconstpointer theme2);
+static void notify_updated_gtktheme (GSettings *settings, gchar *key, gpointer userdata);
 static void update_text_direction (int direction);
 static void update_window_size ();
 static void update_theme (gchar *new_theme);
@@ -153,6 +151,7 @@ static void update_widgets ();
 static void update_marks (GtkScale *scale, gboolean value, int position);
 static void display_notification ();
 static void find_and_update_labels (GtkWidget *widget, gboolean special);
+static gboolean find_and_check_menuradio (GtkWidget *menu, gchar *search);
 static gboolean on_notification_action (void *data);
 static gboolean on_sighup (void *data);
 static gboolean take_screenshot (void *data);
@@ -172,8 +171,9 @@ static void create_spinners (GtkWidget *root);
 static void create_expander (GtkWidget *root);
 static void create_frames (GtkWidget *root1, GtkWidget *root2);
 static void create_notebooks (GtkWidget *root1, GtkWidget *root2);
-static void create_notebook_tab (GtkWidget *notebook, gchar *text, gboolean close);
+static void create_notebook_tab (GtkWidget *notebook, gchar *text, GtkWidget *content, gboolean close);
 static void create_treview (GtkWidget *root);
+static void create_scales (GtkWidget *notebook, gchar *text, int position);
 static GtkWidget* create_horizontal_scale (gdouble value, gboolean draw, gboolean inverted, int position);
 static GtkWidget* create_vertical_scale (gdouble value, gboolean draw, gboolean inverted, int position);
 static void create_traditional_menubar (GtkWidget *root);
@@ -194,12 +194,9 @@ static void dialog_message ();
 static void dialog_page_setup ();
 static void dialog_print ();
 static void dialog_about ();
+static void dialog_inspector ();
 static void dialog_calendar ();
-static void dialog_scales_top ();
-static void dialog_scales_bottom ();
-static void dialog_scales_right ();
-static void dialog_scales_left ();
-static void dialog_scales (int position);
+static void dialog_scales ();
 #if GTK_CHECK_VERSION (3,4,0)
 static gboolean on_scrolltabs (GtkWidget *widget, GdkEventScroll *event);
 #endif
@@ -406,6 +403,15 @@ static int awf_compare_theme (gconstpointer theme1, gconstpointer theme2) { // @
 	return g_strcmp0 ((gchar*) theme1, (gchar*) theme2);
 }
 
+static void notify_updated_gtktheme (GSettings *settings, gchar *key, gpointer userdata) { // @common
+
+	gchar *new_theme = g_settings_get_string (settings, "gtk-theme");
+	g_usleep (G_USEC_PER_SEC / 2);
+
+	update_theme (new_theme);
+	find_and_check_menuradio (menubar, new_theme);
+}
+
 static void update_text_direction (int direction) { // @common 80%
 
 	// we must ignore the activate signal when menubar is created
@@ -459,6 +465,9 @@ static void update_theme (gchar *new_theme) { // @common
 	// we must ignore the activate signal when menubar is created
 	if (!allow_update_theme)
 		return;
+	// we can ignore the signal when the menuitem is deselected, but no
+	//if (root && GTK_IS_CHECK_MENU_ITEM (root) && !gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (root)))
+	//	return;
 
 	if (strcmp ((gchar*) new_theme, "refresh") == 0) {
 
@@ -681,6 +690,42 @@ static void find_and_update_labels (GtkWidget *widget, gboolean special) {
 	}
 }
 
+static gboolean find_and_check_menuradio (GtkWidget *menu, gchar *search) {
+
+	GList *children = gtk_container_get_children (GTK_CONTAINER (menu)), *iter;
+	GtkWidget *item;
+
+	for (iter = children; iter != NULL; iter = g_list_next (iter)) {
+
+		item = GTK_WIDGET (iter->data);
+		if (GTK_IS_MENU_ITEM (item)) {
+
+			GtkWidget *submenu = gtk_menu_item_get_submenu (GTK_MENU_ITEM (item));
+			if (submenu) {
+				// process submenu
+				if (find_and_check_menuradio (submenu, search)) {
+					g_list_free (children);
+					return TRUE;
+				}
+			}
+			else if (gtk_widget_get_sensitive (item)) {
+				// check menuitem label
+				const gchar *value = gtk_menu_item_get_label (GTK_MENU_ITEM (item));
+				if (value && (g_strcmp0 (value, search) == 0)) {
+					allow_update_theme = FALSE;
+					gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (item), TRUE);
+					allow_update_theme = TRUE;
+					g_list_free (children);
+					return TRUE;
+				}
+			}
+		}
+	}
+
+	g_list_free (children);
+	return FALSE;
+}
+
 static gboolean on_notification_action (void *data) { // @common
 	return FALSE;
 }
@@ -753,6 +798,12 @@ static void create_window (gpointer app) {
 		#if GTK_CHECK_VERSION (3,12,0)
 			const gchar *config = g_getenv ("GTK_CSD");
 			if (config && (strcmp (config, "1") == 0)) {
+
+				// enable CSD for dialogs
+				// except for custom dialogs
+				g_object_set (gtk_settings_get_default (), "gtk-dialogs-use-header", TRUE, NULL);
+
+				gtk_window_set_decorated (GTK_WINDOW (window), TRUE);
 
 				GtkWidget *button;
 				GtkWidget *headerbar = gtk_header_bar_new ();
@@ -831,7 +882,7 @@ static void create_window (gpointer app) {
 			}
 		#endif
 
-		GtkWidget *menubar = gtk_menu_bar_new ();
+		menubar = gtk_menu_bar_new ();
 		create_traditional_menubar (menubar);
 		add_to (GTK_BOX (vbox_window), menubar, FALSE, FALSE, 0, 0);
 
@@ -855,6 +906,14 @@ static void create_window (gpointer app) {
 	allow_update_theme = TRUE;
 	update_text_direction (current_direction);
 	g_signal_connect (window, "destroy", G_CALLBACK (quit), NULL);
+
+	#if GLIB_CHECK_VERSION (2,32,0)
+		if (g_settings_schema_source_lookup (g_settings_schema_source_get_default (), "org.gnome.desktop.interface", FALSE))
+			g_signal_connect (g_settings_new("org.gnome.desktop.interface"), "changed::gtk-theme", G_CALLBACK (notify_updated_gtktheme), NULL);
+
+		if (g_settings_schema_source_lookup (g_settings_schema_source_get_default (), "org.mate.interface", FALSE))
+			g_signal_connect (g_settings_new("org.mate.interface"), "changed::gtk-theme", G_CALLBACK (notify_updated_gtktheme), NULL);
+	#endif
 
 	gtk_widget_show_all (window);
 	add_progressbar_and_entrybar ();
@@ -994,7 +1053,7 @@ static void add_progressbar_and_entrybar () {
 	gtk_widget_set_visible (toolbarentry, FALSE);
 	gtk_widget_set_vexpand (toolbarentry, FALSE);
 	gtk_widget_set_valign (toolbarentry, GTK_ALIGN_CENTER);
-	gtk_container_add (GTK_CONTAINER (gtk_toolbar_get_nth_item (GTK_TOOLBAR (toolbar), 8)), toolbarentry); // after [+]
+	gtk_container_add (GTK_CONTAINER (gtk_toolbar_get_nth_item (GTK_TOOLBAR (toolbar), 10)), toolbarentry); // end left
 
 	// progressbar toolbar
 	progressbar8 = gtk_progress_bar_new ();
@@ -1003,7 +1062,7 @@ static void add_progressbar_and_entrybar () {
 	gtk_widget_set_visible (progressbar8, FALSE);
 	gtk_widget_set_vexpand (progressbar8, FALSE);
 	gtk_widget_set_valign (progressbar8, GTK_ALIGN_CENTER);
-	gtk_container_add (GTK_CONTAINER (gtk_toolbar_get_nth_item (GTK_TOOLBAR (toolbar), 12)), progressbar8); // end
+	gtk_container_add (GTK_CONTAINER (gtk_toolbar_get_nth_item (GTK_TOOLBAR (toolbar), 12)), progressbar8); // end right
 
 	// progressbar statusbar
 	progressbar9 = gtk_progress_bar_new ();
@@ -1074,17 +1133,17 @@ static void create_toolbar_items (GtkWidget *root) { // @common gtk2/3
 	gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (tool8), TRUE);
 	g_signal_connect (tool8, "clicked", G_CALLBACK (update_widgets), NULL);
 
-	tool9 = GTK_WIDGET (gtk_tool_item_new ());
+	tool9 = GTK_WIDGET (gtk_toggle_tool_button_new ());
+	gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (tool9), "gtk-remove");
+	gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (tool9), FALSE);
+	g_signal_connect (tool9, "clicked", G_CALLBACK (update_widgets), NULL);
 
 	tool10 = GTK_WIDGET (gtk_toggle_tool_button_new ());
-	gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (tool10), "gtk-remove");
+	gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (tool10), "gtk-close");
 	gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (tool10), FALSE);
-	g_signal_connect (tool10, "clicked", G_CALLBACK (update_widgets), NULL);
+	gtk_widget_set_sensitive (tool10, FALSE);
 
-	tool11 = GTK_WIDGET (gtk_toggle_tool_button_new ());
-	gtk_tool_button_set_icon_name (GTK_TOOL_BUTTON (tool11), "gtk-close");
-	gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (tool11), FALSE);
-	gtk_widget_set_sensitive (tool11, FALSE);
+	tool11 = GTK_WIDGET (gtk_tool_item_new ());
 
 	tool12 = GTK_WIDGET (gtk_tool_item_new ());
 	gtk_tool_item_set_expand (GTK_TOOL_ITEM (tool12), TRUE);
@@ -1100,9 +1159,9 @@ static void create_toolbar_items (GtkWidget *root) { // @common gtk2/3
 	gtk_toolbar_insert (GTK_TOOLBAR (root), GTK_TOOL_ITEM (tool6), -1);
 	gtk_toolbar_insert (GTK_TOOLBAR (root), gtk_separator_tool_item_new (), -1);
 	gtk_toolbar_insert (GTK_TOOLBAR (root), GTK_TOOL_ITEM (tool8), -1);
-	gtk_toolbar_insert (GTK_TOOLBAR (root), GTK_TOOL_ITEM (tool9), -1); // = 8
+	gtk_toolbar_insert (GTK_TOOLBAR (root), GTK_TOOL_ITEM (tool9), -1);
 	gtk_toolbar_insert (GTK_TOOLBAR (root), GTK_TOOL_ITEM (tool10), -1);
-	gtk_toolbar_insert (GTK_TOOLBAR (root), GTK_TOOL_ITEM (tool11), -1);
+	gtk_toolbar_insert (GTK_TOOLBAR (root), GTK_TOOL_ITEM (tool11), -1); // = 10
 	gtk_toolbar_insert (GTK_TOOLBAR (root), GTK_TOOL_ITEM (tool12), -1);
 	gtk_toolbar_insert (GTK_TOOLBAR (root), GTK_TOOL_ITEM (tool13), -1); // = 12
 }
@@ -1495,8 +1554,11 @@ static void create_expander (GtkWidget *root) {
 	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 	#if GTK_CHECK_VERSION (3,16,0)
 		const gchar *config = g_getenv ("GTK_OVERLAY_SCROLLING");
-		if (config && (strcmp (config, "0") == 0))
+		if (config && (strcmp (config, "0") == 0)) {
 			gtk_scrolled_window_set_overlay_scrolling (GTK_SCROLLED_WINDOW (scrolled_window), FALSE);
+			gtk_style_context_add_class (gtk_widget_get_style_context (gtk_scrolled_window_get_hscrollbar (GTK_SCROLLED_WINDOW (scrolled_window))), "discrete");
+			gtk_style_context_add_class (gtk_widget_get_style_context (gtk_scrolled_window_get_vscrollbar (GTK_SCROLLED_WINDOW (scrolled_window))), "discrete");
+		}
 	#endif
 
 	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolled_window), GTK_SHADOW_IN);
@@ -1562,34 +1624,34 @@ static void create_notebooks (GtkWidget *root1, GtkWidget *root2) { // @common*
 	gtk_notebook_popup_enable (GTK_NOTEBOOK (notebook1));
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook1), FALSE);
 	gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook1), GTK_POS_TOP);
-		create_notebook_tab (notebook1, "Tab1", FALSE);
-		create_notebook_tab (notebook1, "Tab2", FALSE);
-		create_notebook_tab (notebook1, "Tab3", TRUE);
-		create_notebook_tab (notebook1, "Tab4", TRUE);
+		create_notebook_tab (notebook1, "Tab1", NULL, FALSE);
+		create_notebook_tab (notebook1, "Tab2", NULL, FALSE);
+		create_notebook_tab (notebook1, "Tab3", NULL, TRUE);
+		create_notebook_tab (notebook1, "Tab4", NULL, TRUE);
 
 	gtk_notebook_popup_enable (GTK_NOTEBOOK (notebook2));
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook2), FALSE);
 	gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook2), GTK_POS_BOTTOM);
-		create_notebook_tab (notebook2, "Tab1", FALSE);
-		create_notebook_tab (notebook2, "Tab2", FALSE);
-		create_notebook_tab (notebook2, "Tab3", TRUE);
-		create_notebook_tab (notebook2, "Tab4", TRUE);
+		create_notebook_tab (notebook2, "Tab1", NULL, FALSE);
+		create_notebook_tab (notebook2, "Tab2", NULL, FALSE);
+		create_notebook_tab (notebook2, "Tab3", NULL, TRUE);
+		create_notebook_tab (notebook2, "Tab4", NULL, TRUE);
 
 	gtk_notebook_popup_enable (GTK_NOTEBOOK (notebook3));
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook3), FALSE);
 	gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook3), GTK_POS_LEFT);
-		create_notebook_tab (notebook3, "T1", FALSE);
-		create_notebook_tab (notebook3, "Tab2", FALSE);
-		create_notebook_tab (notebook3, "T3b", TRUE);
-		create_notebook_tab (notebook3, "T4", TRUE);
+		create_notebook_tab (notebook3, "T1",   NULL, FALSE);
+		create_notebook_tab (notebook3, "Tab2", NULL, FALSE);
+		create_notebook_tab (notebook3, "T3b",  NULL, TRUE);
+		create_notebook_tab (notebook3, "T4",   NULL, TRUE);
 
 	gtk_notebook_popup_enable (GTK_NOTEBOOK (notebook4));
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook4), FALSE);
 	gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook4), GTK_POS_RIGHT);
-		create_notebook_tab (notebook4, "T1", FALSE);
-		create_notebook_tab (notebook4, "Tab2", FALSE);
-		create_notebook_tab (notebook4, "T3b", TRUE);
-		create_notebook_tab (notebook4, "T4", TRUE);
+		create_notebook_tab (notebook4, "T1",   NULL, FALSE);
+		create_notebook_tab (notebook4, "Tab2", NULL, FALSE);
+		create_notebook_tab (notebook4, "T3b",  NULL, TRUE);
+		create_notebook_tab (notebook4, "T4",   NULL, TRUE);
 
 	add_to (GTK_BOX (root1), notebook1, TRUE, TRUE, 0, 0);
 	add_to (GTK_BOX (root1), notebook2, TRUE, TRUE, 0, 0);
@@ -1597,10 +1659,13 @@ static void create_notebooks (GtkWidget *root1, GtkWidget *root2) { // @common*
 	add_to (GTK_BOX (root2), notebook4, TRUE, TRUE, 0, 0);
 }
 
-static void create_notebook_tab (GtkWidget *notebook, gchar *text, gboolean close) {
+static void create_notebook_tab (GtkWidget *notebook, gchar *text, GtkWidget *content, gboolean close) {
 
-	GtkWidget *headbtn = BOXH, *content = BOXV, *btn;
+	GtkWidget *headbtn = BOXH, *btn;
 	add_to (GTK_BOX (headbtn), gtk_label_new (text), TRUE, TRUE, 0, 0);
+
+	if (!content)
+		content = BOXV;
 
 	if (close) {
 		btn = gtk_button_new ();
@@ -1917,6 +1982,128 @@ static void create_treview (GtkWidget *root) { // @common 80%
 	add_to (GTK_BOX (root), scrolled_window, FALSE, FALSE, 0, 0);
 }
 
+static void create_scales (GtkWidget *notebook, gchar *text, int position) {
+
+	GtkWidget *hbox = BOXH;
+	GtkWidget *vbox1 = BOXV, *vbox2 = BOXV, *vbox3 = BOXV, *hboxa = BOXH, *hboxb = BOXH;
+	GtkWidget *scale1v, *scale2v, *scale3v, *scale4v, *scale5v, *scale6v, *scale7v, *scale8v, *scale9v, *scale10v, *scale11v, *scale12v;
+	GtkWidget *scale1h, *scale2h, *scale3h, *scale4h, *scale5h, *scale6h, *scale7h, *scale8h, *scale9h, *scale10h, *scale11h, *scale12h;
+	gdouble value = gtk_range_get_value (GTK_RANGE (scale1));
+
+	gtk_container_set_border_width (GTK_CONTAINER (hbox), 12);
+
+	// vertical scales
+	scale1v = create_vertical_scale (value, FALSE, FALSE, position);
+	if (gtk_widget_get_direction (window) == GTK_TEXT_DIR_RTL) // @todo highlight bottom instead of top, why?
+		gtk_style_context_add_class (gtk_widget_get_style_context (scale1v), "top");
+
+	scale2v = create_vertical_scale (value, FALSE, FALSE, position);
+	update_marks (GTK_SCALE (scale2v), FALSE, GTK_POS_LEFT);
+	if (gtk_widget_get_direction (window) == GTK_TEXT_DIR_RTL) // @todo highlight bottom instead of top, why?
+		gtk_style_context_add_class (gtk_widget_get_style_context (scale2v), "top");
+
+	scale3v = create_vertical_scale (value, FALSE, FALSE, position);
+	update_marks (GTK_SCALE (scale3v), TRUE, GTK_POS_LEFT);
+	if (gtk_widget_get_direction (window) == GTK_TEXT_DIR_RTL) // @todo highlight bottom instead of top, why?
+		gtk_style_context_add_class (gtk_widget_get_style_context (scale3v), "top");
+
+	scale4v = create_vertical_scale (value, TRUE, FALSE, position);
+	if (gtk_widget_get_direction (window) == GTK_TEXT_DIR_RTL) // @todo highlight bottom instead of top, why?
+		gtk_style_context_add_class (gtk_widget_get_style_context (scale4v), "top");
+
+	scale5v = create_vertical_scale (value, TRUE, FALSE, position);
+	update_marks (GTK_SCALE (scale5v), FALSE, GTK_POS_LEFT);
+	if (gtk_widget_get_direction (window) == GTK_TEXT_DIR_RTL) // @todo highlight bottom instead of top, why?
+		gtk_style_context_add_class (gtk_widget_get_style_context (scale5v), "top");
+
+	scale6v = create_vertical_scale (value, TRUE, FALSE, position);
+	update_marks (GTK_SCALE (scale6v), TRUE, GTK_POS_LEFT);
+	if (gtk_widget_get_direction (window) == GTK_TEXT_DIR_RTL) // @todo highlight bottom instead of top, why?
+		gtk_style_context_add_class (gtk_widget_get_style_context (scale6v), "top");
+
+	scale7v = create_vertical_scale (value, FALSE, TRUE, position);
+
+	scale8v = create_vertical_scale (value, FALSE, TRUE, position);
+	update_marks (GTK_SCALE (scale8v), FALSE, GTK_POS_RIGHT);
+
+	scale9v = create_vertical_scale (value, FALSE, TRUE, position);
+	update_marks (GTK_SCALE (scale9v), TRUE, GTK_POS_RIGHT);
+
+	scale10v = create_vertical_scale (value, TRUE, TRUE, position);
+
+	scale11v = create_vertical_scale (value, TRUE, TRUE, position);
+	update_marks (GTK_SCALE (scale11v), FALSE, GTK_POS_RIGHT);
+
+	scale12v = create_vertical_scale (value, TRUE, TRUE, position);
+	update_marks (GTK_SCALE (scale12v), TRUE, GTK_POS_RIGHT);
+
+	// horizontal scales
+	scale1h = create_horizontal_scale (value, FALSE, FALSE, position);
+
+	scale2h = create_horizontal_scale (value, FALSE, FALSE, position);
+	update_marks (GTK_SCALE (scale2h), FALSE, GTK_POS_TOP);
+
+	scale3h = create_horizontal_scale (value, FALSE, FALSE, position);
+	update_marks (GTK_SCALE (scale3h), TRUE, GTK_POS_TOP);
+
+	scale4h = create_horizontal_scale (value, TRUE, FALSE, position);
+
+	scale5h = create_horizontal_scale (value, TRUE, FALSE, position);
+	update_marks (GTK_SCALE (scale5h), FALSE, GTK_POS_TOP);
+
+	scale6h = create_horizontal_scale (value, TRUE, FALSE, position);
+	update_marks (GTK_SCALE (scale6h), TRUE, GTK_POS_TOP);
+
+	scale7h = create_horizontal_scale (value, FALSE, TRUE, position);
+
+	scale8h = create_horizontal_scale (value, FALSE, TRUE, position);
+	update_marks (GTK_SCALE (scale8h), FALSE, GTK_POS_BOTTOM);
+
+	scale9h = create_horizontal_scale (value, FALSE, TRUE, position);
+	update_marks (GTK_SCALE (scale9h), TRUE, GTK_POS_BOTTOM);
+
+	scale10h = create_horizontal_scale (value, TRUE, TRUE, position);
+
+	scale11h = create_horizontal_scale (value, TRUE, TRUE, position);
+	update_marks (GTK_SCALE (scale11h), FALSE, GTK_POS_BOTTOM);
+
+	scale12h = create_horizontal_scale (value, TRUE, TRUE, position);
+	update_marks (GTK_SCALE (scale12h), TRUE, GTK_POS_BOTTOM);
+
+	// layout
+	add_to (GTK_BOX (hbox), vbox1, TRUE, TRUE, 5, 5);
+		add_to (GTK_BOX (vbox1), scale1h, FALSE, FALSE, 5, 5);
+		add_to (GTK_BOX (vbox1), scale2h, FALSE, FALSE, 5, 5);
+		add_to (GTK_BOX (vbox1), scale3h, FALSE, FALSE, 5, 5);
+		add_to (GTK_BOX (vbox1), scale4h, FALSE, FALSE, 5, 5);
+		add_to (GTK_BOX (vbox1), scale5h, FALSE, FALSE, 5, 5);
+		add_to (GTK_BOX (vbox1), scale6h, FALSE, FALSE, 5, 5);
+	add_to (GTK_BOX (hbox), vbox2, TRUE, TRUE, 5, 5);
+		add_to (GTK_BOX (vbox2), hboxa, TRUE, TRUE, 0, 0);
+			add_to (GTK_BOX (hboxa), scale1v, FALSE, FALSE, 5, 5);
+			add_to (GTK_BOX (hboxa), scale2v, FALSE, FALSE, 5, 5);
+			add_to (GTK_BOX (hboxa), scale3v, FALSE, FALSE, 5, 5);
+			add_to (GTK_BOX (hboxa), scale7v, FALSE, FALSE, 5, 5);
+			add_to (GTK_BOX (hboxa), scale8v, FALSE, FALSE, 5, 5);
+			add_to (GTK_BOX (hboxa), scale9v, FALSE, FALSE, 5, 5);
+		add_to (GTK_BOX (vbox2), hboxb, TRUE, TRUE, 0, 0);
+			add_to (GTK_BOX (hboxb), scale4v, FALSE, FALSE, 5, 5);
+			add_to (GTK_BOX (hboxb), scale5v, FALSE, FALSE, 5, 5);
+			add_to (GTK_BOX (hboxb), scale6v, FALSE, FALSE, 5, 5);
+			add_to (GTK_BOX (hboxb), scale10v, FALSE, FALSE, 5, 5);
+			add_to (GTK_BOX (hboxb), scale11v, FALSE, FALSE, 5, 5);
+			add_to (GTK_BOX (hboxb), scale12v, FALSE, FALSE, 5, 5);
+	add_to (GTK_BOX (hbox), vbox3, TRUE, TRUE, 5, 5);
+		add_to (GTK_BOX (vbox3), scale7h, FALSE, FALSE, 5, 5);
+		add_to (GTK_BOX (vbox3), scale8h, FALSE, FALSE, 5, 5);
+		add_to (GTK_BOX (vbox3), scale9h, FALSE, FALSE, 5, 5);
+		add_to (GTK_BOX (vbox3), scale10h, FALSE, FALSE, 5, 5);
+		add_to (GTK_BOX (vbox3), scale11h, FALSE, FALSE, 5, 5);
+		add_to (GTK_BOX (vbox3), scale12h, FALSE, FALSE, 5, 5);
+
+	create_notebook_tab (notebook, text, hbox, FALSE);
+}
+
 static GtkWidget* create_horizontal_scale (gdouble value, gboolean draw, gboolean inverted, int position) { // @common +shortcut
 
 	GtkWidget *scale;
@@ -1950,7 +2137,7 @@ static GtkWidget* create_vertical_scale (gdouble value, gboolean draw, gboolean 
 
 static void create_traditional_menubar (GtkWidget *root) {
 
-	GtkWidget *menu, *submenu, *menuitem;
+	GtkWidget *menu, *submenu, *menuitem, *base;
 	GtkAccelGroup *accels = gtk_accel_group_new ();
 	GSList *iterator, *group = NULL;
 
@@ -1964,17 +2151,13 @@ static void create_traditional_menubar (GtkWidget *root) {
 
 		create_menuitem (menu, "gtk-open", FALSE, AWF_ACCEL_OPEN, AWF_OPEN, dialog_open);
 		create_menuitem (menu, _app("Open recent file"), FALSE, AWF_ACCEL_RECE, AWF_RECE, dialog_recent);
-		create_menuitem (menu, _app("Calendar"), FALSE, AWF_ACCEL_CALE, AWF_CALE, dialog_calendar);
-		create_menuitem (menu, _app("GtkScales top"), FALSE, AWF_ACCEL_SCAT, AWF_SCAT, dialog_scales_top);
-		create_menuitem (menu, _app("GtkScales bottom"), FALSE, AWF_ACCEL_SCAB, AWF_SCAB, dialog_scales_bottom);
-		create_menuitem (menu, _app("GtkScales right"), FALSE, AWF_ACCEL_SCAR, AWF_SCAR, dialog_scales_right);
-		create_menuitem (menu, _app("GtkScales left"), FALSE, AWF_ACCEL_SCAL, AWF_SCAL, dialog_scales_left);
 		create_menuitem (menu, "gtk-save", FALSE, AWF_ACCEL_SAVE, AWF_SAVE, dialog_save);
 		create_menuitem (menu, "gtk-refresh", FALSE, AWF_ACCEL_REFR, AWF_REFR, G_CALLBACK (on_sighup)); // G_CALLBACK (update_theme)
+		create_menuitem (menu, _app("Calendar"), FALSE, AWF_ACCEL_CALE, AWF_CALE, dialog_calendar);
+		create_menuitem (menu, _app("GtkScales"), FALSE, AWF_ACCEL_SCAL, AWF_SCAL, dialog_scales);
 		create_menuitem (menu, "gtk-properties", FALSE, AWF_ACCEL_PROP, AWF_PROP, dialog_message);
 		create_menuitem (menu, "gtk-page-setup", FALSE, AWF_ACCEL_PRSE, AWF_PRSE, dialog_page_setup);
 		create_menuitem (menu, "gtk-print", FALSE, AWF_ACCEL_PRIN, AWF_PRIN, dialog_print);
-		create_menuitem (menu, "gtk-about", FALSE, AWF_ACCEL_ABOU, AWF_ABOU, dialog_about);
 
 		submenu = create_menu (menu, _app("More..."));
 		gtk_menu_set_accel_group (GTK_MENU (submenu), accels); // very important
@@ -2017,15 +2200,35 @@ static void create_traditional_menubar (GtkWidget *root) {
 	group = NULL;
 	menu  = create_menu (root, _app("_System themes"));
 	for (iterator = list_system_theme; iterator; iterator = iterator->next) {
+
+		if (
+			(strcmp ((gchar*) iterator->data, "Mint-L") == 0) ||
+			(strcmp ((gchar*) iterator->data, "Mint-X") == 0) ||
+			(strcmp ((gchar*) iterator->data, "Mint-Y") == 0)
+		) {
+			submenu = create_menu (menu, iterator->data);
+			base = submenu;
+		}
+		else if (
+			g_str_has_prefix ((gchar*) iterator->data, "Mint-L") ||
+			g_str_has_prefix ((gchar*) iterator->data, "Mint-X") ||
+			g_str_has_prefix ((gchar*) iterator->data, "Mint-Y")
+		) {
+			base = submenu;
+		}
+		else {
+			base = menu;
+		}
+
 		if (g_slist_find_custom (list_user_theme, iterator->data, &awf_compare_theme)) {
-			menuitem = create_menuitem_radio (menu, iterator->data, FALSE, FALSE, TRUE, group);
+			menuitem = create_menuitem_radio (base, iterator->data, FALSE, FALSE, TRUE, group);
 			group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (menuitem));
 			if (strcmp ((gchar*) current_theme, (gchar*) iterator->data) == 0)
 				gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (menuitem), TRUE);
 			g_signal_connect_swapped (menuitem, "activate", G_CALLBACK (update_theme), iterator->data);
 		}
 		else {
-			menuitem = create_menuitem_radio (menu, iterator->data, FALSE, FALSE, FALSE, group);
+			menuitem = create_menuitem_radio (base, iterator->data, FALSE, FALSE, FALSE, group);
 			group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (menuitem));
 			if (strcmp ((gchar*) current_theme, (gchar*) iterator->data) == 0)
 				gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (menuitem), TRUE);
@@ -2039,7 +2242,27 @@ static void create_traditional_menubar (GtkWidget *root) {
 	// user themes
 	menu = create_menu (root, _app("_User themes"));
 	for (iterator = list_user_theme; iterator; iterator = iterator->next) {
-		menuitem = create_menuitem_radio (menu, iterator->data, FALSE, FALSE, FALSE, group);
+
+		if (
+			(strcmp ((gchar*) iterator->data, "Mint-L") == 0) ||
+			(strcmp ((gchar*) iterator->data, "Mint-X") == 0) ||
+			(strcmp ((gchar*) iterator->data, "Mint-Y") == 0)
+		) {
+			submenu = create_menu (menu, iterator->data);
+			base = submenu;
+		}
+		else if (
+			g_str_has_prefix ((gchar*) iterator->data, "Mint-L") ||
+			g_str_has_prefix ((gchar*) iterator->data, "Mint-X") ||
+			g_str_has_prefix ((gchar*) iterator->data, "Mint-Y")
+		) {
+			base = submenu;
+		}
+		else {
+			base = menu;
+		}
+
+		menuitem = create_menuitem_radio (base, iterator->data, FALSE, FALSE, FALSE, group);
 		group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (menuitem));
 		if (strcmp ((gchar*) current_theme, (gchar*) iterator->data) == 0)
 			gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (menuitem), TRUE);
@@ -2063,6 +2286,18 @@ static void create_traditional_menubar (GtkWidget *root) {
 		if ((current_direction == GTK_TEXT_DIR_RTL) || (current_direction == 2))
 			gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (menuitem), TRUE);
 		g_signal_connect_swapped (menuitem, "activate", G_CALLBACK (update_text_direction), (gpointer) GTK_TEXT_DIR_RTL);
+
+	// help
+	menu = create_menu (root, _app("_Help"));
+	gtk_menu_set_accel_group (GTK_MENU (menu), accels); // very important
+
+		#if GTK_CHECK_VERSION (3,14,0)
+			create_menuitem (menu, "GtkInspector", FALSE, AWF_ACCEL_INSP, AWF_INSP, dialog_inspector);
+		#else
+			gtk_widget_set_sensitive (create_menuitem (menu, "GtkInspector", FALSE, AWF_ACCEL_INSP, AWF_INSP, NULL), FALSE);
+		#endif
+
+		create_menuitem (menu, "gtk-about", FALSE, AWF_ACCEL_ABOU, AWF_ABOU, dialog_about);
 
 	// gtk-can-change-accels for GTK 3.2..3.24 | so same GTK 2.24 - 3.x
 	accels_load ();
@@ -2235,6 +2470,12 @@ static void dialog_open () { // @common gtk2/3
 		GTK_RESPONSE_ACCEPT,
 		NULL);
 
+	#if GTK_CHECK_VERSION (3,12,0)
+		const gchar *config = g_getenv ("GTK_CSD");
+		if (config && (strcmp (config, "1") == 0)) // with gtk-dialogs-use-header
+			gtk_header_bar_set_has_subtitle (GTK_HEADER_BAR (gtk_dialog_get_header_bar (GTK_DIALOG (dialog))), FALSE);
+	#endif
+
 	gtk_file_chooser_set_select_multiple (GTK_FILE_CHOOSER (dialog), TRUE);
 	gtk_dialog_run (GTK_DIALOG (dialog));
 	gtk_widget_destroy (dialog);
@@ -2251,6 +2492,12 @@ static void dialog_recent () { // @common gtk2/3
 		GTK_RESPONSE_ACCEPT,
 		NULL);
 
+	#if GTK_CHECK_VERSION (3,12,0)
+		const gchar *config = g_getenv ("GTK_CSD");
+		if (config && (strcmp (config, "1") == 0)) // with gtk-dialogs-use-header
+			gtk_header_bar_set_has_subtitle (GTK_HEADER_BAR (gtk_dialog_get_header_bar (GTK_DIALOG (dialog))), FALSE);
+	#endif
+
 	gtk_dialog_run (GTK_DIALOG (dialog));
 	gtk_widget_destroy (dialog);
 }
@@ -2266,6 +2513,12 @@ static void dialog_save () { // @common gtk2/3
 		"gtk-save",
 		GTK_RESPONSE_ACCEPT,
 		NULL);
+
+	#if GTK_CHECK_VERSION (3,12,0)
+		const gchar *config = g_getenv ("GTK_CSD");
+		if (config && (strcmp (config, "1") == 0)) // with gtk-dialogs-use-header
+			gtk_header_bar_set_has_subtitle (GTK_HEADER_BAR (gtk_dialog_get_header_bar (GTK_DIALOG (dialog))), FALSE);
+	#endif
 
 	gtk_dialog_run (GTK_DIALOG (dialog));
 	gtk_widget_destroy (dialog);
@@ -2290,6 +2543,13 @@ static void dialog_message () { // @common gtk2/3
 static void dialog_page_setup () { // @common gtk2/3
 
 	GtkWidget *dialog = gtk_page_setup_unix_dialog_new ("GtkPageSetupUnixDialog", GTK_WINDOW (window));
+
+	#if GTK_CHECK_VERSION (3,12,0)
+		const gchar *config = g_getenv ("GTK_CSD");
+		if (config && (strcmp (config, "1") == 0)) // with gtk-dialogs-use-header
+			gtk_header_bar_set_has_subtitle (GTK_HEADER_BAR (gtk_dialog_get_header_bar (GTK_DIALOG (dialog))), FALSE);
+	#endif
+
 	gtk_dialog_run (GTK_DIALOG (dialog));
 	gtk_widget_destroy (dialog);
 }
@@ -2297,6 +2557,13 @@ static void dialog_page_setup () { // @common gtk2/3
 static void dialog_print () { // @common gtk2/3
 
 	GtkWidget *dialog = gtk_print_unix_dialog_new ("GtkPrintUnixDialog", GTK_WINDOW (window));
+
+	#if GTK_CHECK_VERSION (3,12,0)
+		const gchar *config = g_getenv ("GTK_CSD");
+		if (config && (strcmp (config, "1") == 0)) // with gtk-dialogs-use-header
+			gtk_header_bar_set_has_subtitle (GTK_HEADER_BAR (gtk_dialog_get_header_bar (GTK_DIALOG (dialog))), FALSE);
+	#endif
+
 	gtk_dialog_run (GTK_DIALOG (dialog));
 	gtk_widget_destroy (dialog);
 }
@@ -2334,16 +2601,19 @@ static void dialog_about () { // @common
 	g_free (t4);
 }
 
+static void dialog_inspector () { // @common gtk3/4
+
+	#if GTK_CHECK_VERSION (3,14,0)
+		gtk_window_set_interactive_debugging (TRUE);
+	#endif
+}
+
 static void dialog_calendar () { // @common gtk2/3
 
-	GtkWidget *dialog, *infobar, *label, *calendar, *vbox = BOXV, *area;
+	GtkWidget *dialog, *infobar, *label, *calendar, *area, *btn, *vbox = BOXV;
 
-	dialog = gtk_dialog_new_with_buttons (
-		NULL,
-		GTK_WINDOW (window),
-		GTK_DIALOG_DESTROY_WITH_PARENT,
-		NULL,
-		NULL);
+	dialog = gtk_dialog_new_with_buttons (NULL, GTK_WINDOW (window), GTK_DIALOG_DESTROY_WITH_PARENT, NULL, NULL);
+	gtk_container_set_border_width (GTK_CONTAINER (dialog), 5);
 
 	// info bars and calendar
 	infobar = gtk_info_bar_new_with_buttons ("gtk-ok", GTK_RESPONSE_OK, NULL);
@@ -2376,12 +2646,26 @@ static void dialog_calendar () { // @common gtk2/3
 	add_to (GTK_BOX (vbox), calendar, FALSE, FALSE, 0, 0);
 
 	// dialog
+	gtk_container_set_border_width (GTK_CONTAINER (dialog), 5);
 	area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+	gtk_box_set_spacing (GTK_BOX (area), 2);
 	add_to (GTK_BOX (area), vbox, TRUE, TRUE, 5, 5);
 	gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-cancel", 0);
-	gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-ok", 0);
+	btn = gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-ok", 0);
+
+	#if GTK_CHECK_VERSION (3,12,0)
+		const gchar *config = g_getenv ("GTK_CSD");
+		if (config && (strcmp (config, "1") == 0)) {
+			gtk_window_set_decorated (GTK_WINDOW (dialog), TRUE);
+			GtkWidget *headerbardialog = gtk_header_bar_new ();
+			gtk_header_bar_set_has_subtitle (GTK_HEADER_BAR (headerbardialog), FALSE);
+			gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (headerbardialog), TRUE);
+			gtk_window_set_titlebar (GTK_WINDOW (dialog), headerbardialog);
+		}
+	#endif
 
 	gtk_widget_show_all (dialog);
+	gtk_widget_grab_focus (GTK_WIDGET (btn));
 	gtk_window_set_resizable (GTK_WINDOW (dialog), FALSE);
 	gtk_widget_set_size_request (dialog, 350, -1);
 	gtk_window_set_title (GTK_WINDOW (dialog), "GtkDialog");
@@ -2389,150 +2673,38 @@ static void dialog_calendar () { // @common gtk2/3
 	gtk_widget_destroy (dialog);
 }
 
-static void dialog_scales_top () { // @common
-	dialog_scales (GTK_POS_TOP);
-}
+static void dialog_scales () {
 
-static void dialog_scales_bottom () { // @common
-	dialog_scales (GTK_POS_BOTTOM);
-}
+	GtkWidget *dialog, *notebook, *area;
 
-static void dialog_scales_right () { // @common
-	dialog_scales (GTK_POS_RIGHT);
-}
+	dialog = gtk_dialog_new_with_buttons (NULL, GTK_WINDOW (window), GTK_DIALOG_DESTROY_WITH_PARENT, NULL, NULL);
+	gtk_container_set_border_width (GTK_CONTAINER (dialog), 5);
 
-static void dialog_scales_left () { // @common
-	dialog_scales (GTK_POS_LEFT);
-}
+	notebook = gtk_notebook_new ();
+	gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook), FALSE);
+	gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook), GTK_POS_TOP);
+		create_scales (notebook, "Top", GTK_POS_TOP);
+		create_scales (notebook, "Right", GTK_POS_RIGHT);
+		create_scales (notebook, "Bottom", GTK_POS_BOTTOM);
+		create_scales (notebook, "Left", GTK_POS_LEFT);
 
-static void dialog_scales (int position) {
-
-	GtkWidget *dialog, *area, *hbox = BOXH;
-	GtkWidget *vbox1 = BOXV, *vbox2 = BOXV, *vbox3 = BOXV, *hboxa = BOXH, *hboxb = BOXH;
-	GtkWidget *scale1v, *scale2v, *scale3v, *scale4v, *scale5v, *scale6v, *scale7v, *scale8v, *scale9v, *scale10v, *scale11v, *scale12v;
-	GtkWidget *scale1h, *scale2h, *scale3h, *scale4h, *scale5h, *scale6h, *scale7h, *scale8h, *scale9h, *scale10h, *scale11h, *scale12h;
-	gdouble value = gtk_range_get_value (GTK_RANGE (scale1));
-
-	dialog = gtk_dialog_new_with_buttons (
-		NULL,
-		GTK_WINDOW (window),
-		GTK_DIALOG_DESTROY_WITH_PARENT,
-		NULL,
-		NULL);
-
-	// vertical scales
-	scale1v = create_vertical_scale (value, FALSE, FALSE, position);
-	if (gtk_widget_get_direction (window) == GTK_TEXT_DIR_RTL) // @todo highlight bottom instead of top, why?
-		gtk_style_context_add_class (gtk_widget_get_style_context (scale1v), "top");
-
-	scale2v = create_vertical_scale (value, FALSE, FALSE, position);
-	update_marks (GTK_SCALE (scale2v), FALSE, GTK_POS_LEFT);
-	if (gtk_widget_get_direction (window) == GTK_TEXT_DIR_RTL) // @todo highlight bottom instead of top, why?
-		gtk_style_context_add_class (gtk_widget_get_style_context (scale2v), "top");
-
-	scale3v = create_vertical_scale (value, FALSE, FALSE, position);
-	update_marks (GTK_SCALE (scale3v), TRUE, GTK_POS_LEFT);
-	if (gtk_widget_get_direction (window) == GTK_TEXT_DIR_RTL) // @todo highlight bottom instead of top, why?
-		gtk_style_context_add_class (gtk_widget_get_style_context (scale3v), "top");
-
-	scale4v = create_vertical_scale (value, TRUE, FALSE, position);
-	if (gtk_widget_get_direction (window) == GTK_TEXT_DIR_RTL) // @todo highlight bottom instead of top, why?
-		gtk_style_context_add_class (gtk_widget_get_style_context (scale4v), "top");
-
-	scale5v = create_vertical_scale (value, TRUE, FALSE, position);
-	update_marks (GTK_SCALE (scale5v), FALSE, GTK_POS_LEFT);
-	if (gtk_widget_get_direction (window) == GTK_TEXT_DIR_RTL) // @todo highlight bottom instead of top, why?
-		gtk_style_context_add_class (gtk_widget_get_style_context (scale5v), "top");
-
-	scale6v = create_vertical_scale (value, TRUE, FALSE, position);
-	update_marks (GTK_SCALE (scale6v), TRUE, GTK_POS_LEFT);
-	if (gtk_widget_get_direction (window) == GTK_TEXT_DIR_RTL) // @todo highlight bottom instead of top, why?
-		gtk_style_context_add_class (gtk_widget_get_style_context (scale6v), "top");
-
-	scale7v = create_vertical_scale (value, FALSE, TRUE, position);
-
-	scale8v = create_vertical_scale (value, FALSE, TRUE, position);
-	update_marks (GTK_SCALE (scale8v), FALSE, GTK_POS_RIGHT);
-
-	scale9v = create_vertical_scale (value, FALSE, TRUE, position);
-	update_marks (GTK_SCALE (scale9v), TRUE, GTK_POS_RIGHT);
-
-	scale10v = create_vertical_scale (value, TRUE, TRUE, position);
-
-	scale11v = create_vertical_scale (value, TRUE, TRUE, position);
-	update_marks (GTK_SCALE (scale11v), FALSE, GTK_POS_RIGHT);
-
-	scale12v = create_vertical_scale (value, TRUE, TRUE, position);
-	update_marks (GTK_SCALE (scale12v), TRUE, GTK_POS_RIGHT);
-
-	// horizontal scales
-	scale1h = create_horizontal_scale (value, FALSE, FALSE, position);
-
-	scale2h = create_horizontal_scale (value, FALSE, FALSE, position);
-	update_marks (GTK_SCALE (scale2h), FALSE, GTK_POS_TOP);
-
-	scale3h = create_horizontal_scale (value, FALSE, FALSE, position);
-	update_marks (GTK_SCALE (scale3h), TRUE, GTK_POS_TOP);
-
-	scale4h = create_horizontal_scale (value, TRUE, FALSE, position);
-
-	scale5h = create_horizontal_scale (value, TRUE, FALSE, position);
-	update_marks (GTK_SCALE (scale5h), FALSE, GTK_POS_TOP);
-
-	scale6h = create_horizontal_scale (value, TRUE, FALSE, position);
-	update_marks (GTK_SCALE (scale6h), TRUE, GTK_POS_TOP);
-
-	scale7h = create_horizontal_scale (value, FALSE, TRUE, position);
-
-	scale8h = create_horizontal_scale (value, FALSE, TRUE, position);
-	update_marks (GTK_SCALE (scale8h), FALSE, GTK_POS_BOTTOM);
-
-	scale9h = create_horizontal_scale (value, FALSE, TRUE, position);
-	update_marks (GTK_SCALE (scale9h), TRUE, GTK_POS_BOTTOM);
-
-	scale10h = create_horizontal_scale (value, TRUE, TRUE, position);
-
-	scale11h = create_horizontal_scale (value, TRUE, TRUE, position);
-	update_marks (GTK_SCALE (scale11h), FALSE, GTK_POS_BOTTOM);
-
-	scale12h = create_horizontal_scale (value, TRUE, TRUE, position);
-	update_marks (GTK_SCALE (scale12h), TRUE, GTK_POS_BOTTOM);
-
-	// dialog
 	area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
-	add_to (GTK_BOX (area), hbox, TRUE, TRUE, 5, 5);
-		add_to (GTK_BOX (hbox), vbox1, TRUE, TRUE, 5, 5);
-			add_to (GTK_BOX (vbox1), scale1h, FALSE, FALSE, 5, 5);
-			add_to (GTK_BOX (vbox1), scale2h, FALSE, FALSE, 5, 5);
-			add_to (GTK_BOX (vbox1), scale3h, FALSE, FALSE, 5, 5);
-			add_to (GTK_BOX (vbox1), scale4h, FALSE, FALSE, 5, 5);
-			add_to (GTK_BOX (vbox1), scale5h, FALSE, FALSE, 5, 5);
-			add_to (GTK_BOX (vbox1), scale6h, FALSE, FALSE, 5, 5);
-		add_to (GTK_BOX (hbox), vbox2, TRUE, TRUE, 5, 5);
-			add_to (GTK_BOX (vbox2), hboxa, TRUE, TRUE, 0, 0);
-				add_to (GTK_BOX (hboxa), scale1v, FALSE, FALSE, 5, 5);
-				add_to (GTK_BOX (hboxa), scale2v, FALSE, FALSE, 5, 5);
-				add_to (GTK_BOX (hboxa), scale3v, FALSE, FALSE, 5, 5);
-				add_to (GTK_BOX (hboxa), scale7v, FALSE, FALSE, 5, 5);
-				add_to (GTK_BOX (hboxa), scale8v, FALSE, FALSE, 5, 5);
-				add_to (GTK_BOX (hboxa), scale9v, FALSE, FALSE, 5, 5);
-			add_to (GTK_BOX (vbox2), hboxb, TRUE, TRUE, 0, 0);
-				add_to (GTK_BOX (hboxb), scale4v, FALSE, FALSE, 5, 5);
-				add_to (GTK_BOX (hboxb), scale5v, FALSE, FALSE, 5, 5);
-				add_to (GTK_BOX (hboxb), scale6v, FALSE, FALSE, 5, 5);
-				add_to (GTK_BOX (hboxb), scale10v, FALSE, FALSE, 5, 5);
-				add_to (GTK_BOX (hboxb), scale11v, FALSE, FALSE, 5, 5);
-				add_to (GTK_BOX (hboxb), scale12v, FALSE, FALSE, 5, 5);
-		add_to (GTK_BOX (hbox), vbox3, TRUE, TRUE, 5, 5);
-			add_to (GTK_BOX (vbox3), scale7h, FALSE, FALSE, 5, 5);
-			add_to (GTK_BOX (vbox3), scale8h, FALSE, FALSE, 5, 5);
-			add_to (GTK_BOX (vbox3), scale9h, FALSE, FALSE, 5, 5);
-			add_to (GTK_BOX (vbox3), scale10h, FALSE, FALSE, 5, 5);
-			add_to (GTK_BOX (vbox3), scale11h, FALSE, FALSE, 5, 5);
-			add_to (GTK_BOX (vbox3), scale12h, FALSE, FALSE, 5, 5);
+	gtk_box_set_spacing (GTK_BOX (area), 2);
+	add_to (GTK_BOX (area), notebook, TRUE, TRUE, 5, 5);
 
 	gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-cancel", 0);
 	gtk_dialog_add_button (GTK_DIALOG (dialog), "gtk-ok", 0);
+
+	#if GTK_CHECK_VERSION (3,12,0)
+		const gchar *config = g_getenv ("GTK_CSD");
+		if (config && (strcmp (config, "1") == 0)) {
+			gtk_window_set_decorated (GTK_WINDOW (dialog), TRUE);
+			GtkWidget *headerbardialog = gtk_header_bar_new ();
+			gtk_header_bar_set_has_subtitle (GTK_HEADER_BAR (headerbardialog), FALSE);
+			gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (headerbardialog), TRUE);
+			gtk_window_set_titlebar (GTK_WINDOW (dialog), headerbardialog);
+		}
+	#endif
 
 	gtk_widget_show_all (dialog);
 	gtk_window_set_resizable (GTK_WINDOW (dialog), FALSE);
