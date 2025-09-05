@@ -211,6 +211,8 @@ int main (int argc, gchar **argv) {
 
 	// load available themes
 	list_system_theme = awf_load_theme ("/usr/share/themes");
+	GSList *list_local_system_theme = awf_load_theme ("/usr/local/share/themes");
+	list_system_theme = g_slist_concat(list_system_theme, list_local_system_theme);
 	list_system_theme = g_slist_sort (list_system_theme, (GCompareFunc) awf_compare_theme);
 
 	gchar *directory = g_build_path ("/", g_getenv ("HOME"), ".themes", NULL);
