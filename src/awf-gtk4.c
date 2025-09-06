@@ -66,6 +66,7 @@
 #include <libnotify/notify.h>
 #include <time.h>
 #include <getopt.h>
+#include <locale.h>
 #if GLIB_CHECK_VERSION (2,30,0)
 	#include <glib-unix.h>
 #endif
@@ -202,6 +203,7 @@ int main (int argc, gchar **argv) {
 	int opt = 0, status = 0;
 	GSList *iterator = NULL;
 
+	// TODO: Load themes from all theme directories
 	// load available themes
 	list_system_theme = awf_load_theme ("/usr/share/themes");
 	GSList *list_local_system_theme = awf_load_theme ("/usr/local/share/themes");

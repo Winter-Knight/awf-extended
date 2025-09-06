@@ -66,6 +66,7 @@
 #include <libnotify/notify.h>
 #include <time.h>
 #include <getopt.h>
+#include <locale.h>
 #if GLIB_CHECK_VERSION (2,30,0)
 	#include <glib-unix.h>
 #endif
