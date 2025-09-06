@@ -66,6 +66,7 @@
 #include <libnotify/notify.h>
 #include <time.h>
 #include <getopt.h>
+#include <locale.h>
 #if GLIB_CHECK_VERSION (2,30,0)
 	#include <glib-unix.h>
 #endif
@@ -201,6 +202,32 @@ static void dialog_scales ();
 static gboolean on_scrolltabs (GtkWidget *widget, GdkEventScroll *event);
 #endif
 
+// ensure only one copy across both sorted lists, preferring list1
+static void deduplists(GSList ** list1, GSList ** list2)
+{
+	gpointer data = NULL;
+
+	// dedup list1 first
+	for (GSList * list_ptr = *list1; list_ptr != NULL; list_ptr = list_ptr->next) {
+		if (data && !strcmp(list_ptr->data, data)) {
+			*list1 = g_slist_delete_link(*list1, list_ptr);
+			list_ptr = *list1;
+		}
+		data = list_ptr->data;
+	}
+
+	// dedup list2
+	for (GSList * list_ptr = *list2; list_ptr != NULL; list_ptr = list_ptr->next) {
+		if ((data && !strcmp(list_ptr->data, data)) ||
+			g_slist_find_custom(*list1, list_ptr->data, (GCompareFunc) awf_compare_theme)) {
+			*list2 = g_slist_delete_link(*list2, list_ptr);
+			list_ptr = *list2;
+		}
+		data = list_ptr->data;
+	}
+
+
+}
 
 // run run run
 
@@ -209,16 +236,51 @@ int main (int argc, gchar **argv) {
 	int opt = 0, status = 0;
 	GSList *iterator = NULL;
 
-	// load available themes
-	list_system_theme = awf_load_theme ("/usr/share/themes");
-	GSList *list_local_system_theme = awf_load_theme ("/usr/local/share/themes");
-	list_system_theme = g_slist_concat(list_system_theme, list_local_system_theme);
+	// load system themes
+	const char *const *dirs = g_get_system_data_dirs();
+	int use_rc_theme_dir = 1;
+	for (unsigned int i = 0; dirs[i]; i++) {
+		gchar * theme_path = g_build_path ("/", dirs[i], "themes", NULL);
+		GSList * list_local_system_theme = awf_load_theme(theme_path);
+		list_system_theme = g_slist_concat(list_system_theme, list_local_system_theme);
+		printf("theme_path: %s\n", theme_path);
+		if (!strcmp(theme_path, gtk_rc_get_theme_dir()))
+			use_rc_theme_dir = 0;
+		g_free(theme_path);
+	}
+	if (use_rc_theme_dir) {
+		gchar * theme_path = g_build_path ("/", gtk_rc_get_theme_dir(), NULL);
+		GSList * list_local_system_theme = awf_load_theme(theme_path);
+		g_free(theme_path);
+		list_system_theme = g_slist_concat(list_system_theme, list_local_system_theme);
+		printf("last theme path: %s\n", theme_path);
+	}
 	list_system_theme = g_slist_sort (list_system_theme, (GCompareFunc) awf_compare_theme);
 
-	gchar *directory = g_build_path ("/", g_getenv ("HOME"), ".themes", NULL);
-	list_user_theme  = awf_load_theme (directory);
-	list_user_theme  = g_slist_sort (list_user_theme, (GCompareFunc) awf_compare_theme);
-	g_free (directory);
+	// load user themes
+	gchar *directory = g_build_path ("/", g_get_user_data_dir(), "themes", NULL);
+	printf("user_data_dir: %s\n", directory);
+	list_user_theme = awf_load_theme (directory);
+	g_free(directory);
+	directory = g_build_path ("/", g_get_home_dir (), ".themes", NULL);
+	printf("user_data_dir: %s\n", directory);
+	GSList * list_local_user_theme = awf_load_theme (directory);
+	g_free(directory);
+	list_user_theme = g_slist_concat (list_user_theme, list_local_user_theme);
+	list_user_theme = g_slist_sort (list_user_theme, (GCompareFunc) awf_compare_theme);
+
+	// print all themes, including duplicates
+	for (GSList * list_ptr = list_system_theme; list_ptr; list_ptr = list_ptr->next) {
+		GQuark q = g_quark_from_string(list_ptr->data);
+		printf("theme name: %s     quark: %u\n", list_ptr->data, q);
+	}
+	for (GSList * list_ptr = list_user_theme; list_ptr; list_ptr = list_ptr->next) {
+		GQuark q = g_quark_from_string(list_ptr->data);
+		printf("theme name: %s     quark: %u\n", list_ptr->data, q);
+	}
+
+	// Remove duplicate themes from lists
+	deduplists(&list_user_theme, &list_system_theme);
 
 	// locale
 	setlocale (LC_ALL, "");
