@@ -1,6 +1,6 @@
 /**
  * Forked  M/10/03/2020
- * Updated L/21/07/2025
+ * Updated D/07/09/2025
  *
  * Copyright 2020-2025 | Fabrice Creuzot (luigifab) <code~luigifab~fr>
  * https://github.com/luigifab/awf-extended
@@ -66,7 +66,6 @@
 #include <libnotify/notify.h>
 #include <time.h>
 #include <getopt.h>
-#include <locale.h>
 #if GLIB_CHECK_VERSION (2,30,0)
 	#include <glib-unix.h>
 #endif
@@ -134,8 +133,8 @@
 #define _gtk(String) dgettext (g_strdup_printf ("gtk%d0", GTK_MAJOR_VERSION), String)
 
 // global variables
-static GSList *list_system_theme = NULL;
-static GSList *list_user_theme = NULL;
+static GList *list_system_theme = NULL;
+static GList *list_user_theme = NULL;
 static GtkWidget *window = NULL, *menubar = NULL, *toolbar = NULL, *toolbarentry = NULL, *statusbar = NULL;
 static GtkWidget *volume1 = NULL, *volume2 = NULL;
 static GtkWidget *progressbar1 = NULL, *progressbar2 = NULL, *progressbar3 = NULL, *progressbar4 = NULL, *progressbar8 = NULL, *progressbar9 = NULL;
@@ -150,7 +149,7 @@ static gboolean allow_update_theme = TRUE;
 static gboolean must_save_accels   = FALSE;
 
 // global functions
-static GSList* awf_load_theme (gchar *directory);
+static void awf_load_theme (GHashTable* hashtable, gchar *directory);
 static int awf_compare_theme (gconstpointer theme1, gconstpointer theme2);
 static void notify_updated_gtktheme (GSettings *settings, gchar *key, gpointer userdata);
 static void update_text_direction (int direction);
@@ -214,16 +213,31 @@ static void dialog_scales ();
 int main (int argc, gchar **argv) {
 
 	int opt = 0, status = 0;
-	GSList *iterator = NULL;
+	GHashTable *hash_system_theme = g_hash_table_new (&g_str_hash, &g_str_equal);
+	GHashTable *hash_user_theme = g_hash_table_new (&g_str_hash, &g_str_equal);
+	GList *iterator = NULL;
+	gchar *directory;
 
-	// load available themes
-	list_system_theme = awf_load_theme (gtk_rc_get_theme_dir());
-	list_system_theme = g_slist_sort (list_system_theme, (GCompareFunc) awf_compare_theme);
+	// load available system themes (/usr/local/share/themes && /usr/share/themes)
+	const char *const *dirs = g_get_system_data_dirs ();
+	for (opt = 0; dirs[opt]; opt++) {
+		directory = g_build_path ("/", dirs[opt], "themes", NULL);
+		awf_load_theme (hash_system_theme, directory);
+		g_free (directory);
+	}
 
-	gchar *directory = g_build_path ("/", g_getenv ("HOME"), ".themes", NULL);
-	list_user_theme  = awf_load_theme (directory);
-	list_user_theme  = g_slist_sort (list_user_theme, (GCompareFunc) awf_compare_theme);
+	list_system_theme = g_list_sort (g_hash_table_get_keys (hash_system_theme), (GCompareFunc) awf_compare_theme);
+
+	// load available user themes (HOME/.local/share/themes && HOME/.themes)
+	directory = g_build_path ("/", g_get_user_data_dir (), "themes", NULL);
+	awf_load_theme (hash_user_theme, directory);
 	g_free (directory);
+
+	directory = g_build_path ("/", g_get_home_dir (), ".themes", NULL);
+	awf_load_theme (hash_user_theme, directory);
+	g_free (directory);
+
+	list_user_theme = g_list_sort (g_hash_table_get_keys (hash_user_theme), (GCompareFunc) awf_compare_theme);
 
 	// locale
 	setlocale (LC_ALL, "");
@@ -259,8 +273,8 @@ int main (int argc, gchar **argv) {
 				return status;
 			// --theme <theme> -t <theme>
 			case 't':
-				if (g_slist_find_custom (list_system_theme, optarg, &awf_compare_theme) ||
-					g_slist_find_custom (list_user_theme, optarg, &awf_compare_theme))
+				if (g_list_find_custom (list_system_theme, optarg, &awf_compare_theme) ||
+					g_list_find_custom (list_user_theme, optarg, &awf_compare_theme))
 					opt_theme = (gchar*) optarg;
 				break;
 			// --screenshot <filename> -s <filename>
@@ -317,11 +331,9 @@ static void quit () { // @common
 	exit (0);
 }
 
-static GSList* awf_load_theme (gchar *directory) { // @common
+static void awf_load_theme (GHashTable* hashtable, gchar *directory) { // @common
 
-	GSList *list = NULL;
-	g_return_val_if_fail (directory != NULL, NULL);
-
+	g_printf("%s\n", directory);
 	if (g_file_test (directory, G_FILE_TEST_IS_DIR)) {
 
 		GError *error = NULL;
@@ -337,7 +349,7 @@ static GSList* awf_load_theme (gchar *directory) { // @common
 				if (g_file_test (theme_path, G_FILE_TEST_IS_DIR)) {
 					gchar *theme_subpath = g_build_path ("/", theme_path, gtkdir, NULL);
 					if (g_file_test (theme_subpath, G_FILE_TEST_IS_DIR))
-						list = g_slist_prepend (list, theme);
+						g_hash_table_add (hashtable, theme);
 					g_free (theme_subpath);
 				}
 
@@ -355,11 +367,6 @@ static GSList* awf_load_theme (gchar *directory) { // @common
 			g_error_free (error);
 		}
 	}
-
-	if (list)
-		list = g_slist_reverse (list);
-
-	return list;
 }
 
 static int awf_compare_theme (gconstpointer theme1, gconstpointer theme2) { // @common
@@ -425,9 +432,9 @@ static void update_theme (gchar *new_theme) { // @common
 	if (strcmp ((gchar*) new_theme, "refresh") == 0) {
 
 		gchar *default_theme = "None";
-		if (g_slist_find_custom (list_system_theme, "Default", &awf_compare_theme))
+		if (g_list_find_custom (list_system_theme, "Default", &awf_compare_theme))
 			default_theme = "Default";
-		else if (g_slist_find_custom (list_system_theme, "Raleigh", &awf_compare_theme))
+		else if (g_list_find_custom (list_system_theme, "Raleigh", &awf_compare_theme))
 			default_theme = "Raleigh";
 
 		if (default_theme) {
@@ -1846,7 +1853,8 @@ static void create_traditional_menubar (GtkWidget *root) {
 
 	GtkWidget *menu, *submenu, *menuitem, *base;
 	GtkAccelGroup *accels = gtk_accel_group_new ();
-	GSList *iterator, *group = NULL;
+	GSList *group = NULL;
+	GList *iterator;
 
 	gtk_window_add_accel_group (GTK_WINDOW (window), accels);
 
@@ -1927,7 +1935,7 @@ static void create_traditional_menubar (GtkWidget *root) {
 			base = menu;
 		}
 
-		if (g_slist_find_custom (list_user_theme, iterator->data, &awf_compare_theme)) {
+		if (g_list_find_custom (list_user_theme, iterator->data, &awf_compare_theme)) {
 			menuitem = create_menuitem_radio (base, iterator->data, FALSE, FALSE, TRUE, group);
 			group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (menuitem));
 			if (strcmp ((gchar*) current_theme, (gchar*) iterator->data) == 0)
