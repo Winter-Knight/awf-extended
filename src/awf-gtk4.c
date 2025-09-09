@@ -1,6 +1,6 @@
 /**
  * Forked  M/10/03/2020
- * Updated D/07/09/2025
+ * Updated L/21/07/2025
  *
  * Copyright 2020-2025 | Fabrice Creuzot (luigifab) <code~luigifab~fr>
  * https://github.com/luigifab/awf-extended
@@ -65,6 +65,7 @@
 #include <gdk/gdk.h>
 #include <libnotify/notify.h>
 #include <time.h>
+#include <locale.h>
 #include <getopt.h>
 #if GLIB_CHECK_VERSION (2,30,0)
 	#include <glib-unix.h>
@@ -346,7 +347,6 @@ static void quit () { // @common
 
 static void awf_load_theme (GHashTable* hashtable, gchar *directory) { // @common
 
-	g_printf("%s\n", directory);
 	if (g_file_test (directory, G_FILE_TEST_IS_DIR)) {
 
 		GError *error = NULL;
@@ -700,8 +700,10 @@ static gboolean on_sighup (void *data) { // @common
 static gboolean take_screenshot (void *data) { // @common 50%
 
 	GdkPixbuf *image = NULL;
-	//int width = gtk_widget_get_width (window), height = gtk_widget_get_height (window);
+	int width = 0, height = 0;
 
+	width = gtk_widget_get_width (window);
+	height = gtk_widget_get_height (window);
 	//GtkSnapshot *snapshot = gtk_snapshot_new ();
 	// @todo https://stackoverflow.com/q/78771600
 	//GskRenderNode *node = gtk_snapshot_free_to_node (snapshot);
@@ -711,13 +713,13 @@ static gboolean take_screenshot (void *data) { // @common 50%
 	//cairo_destroy (cr);
 	//cairo_surface_destroy (surface);
 
-	/* if (image) {
+	if (image) {
 		gdk_pixbuf_save (image, opt_screenshot, "png", NULL, "compression", "9", NULL);
 		g_object_unref (image);
  		gchar *text = g_strdup_printf (_app("Theme reloaded, then screenshot saved (%s)."), opt_screenshot);
 		update_statusbar (text);
 		g_free (text);
-	} */
+	}
 
 	return FALSE;
 }
@@ -860,8 +862,9 @@ static void create_window (gpointer app) {
 
 	g_timeout_add (1000, (GSourceFunc) show_menu_icons_delayed, NULL);
 
-	// gtk-can-change-accels for GTK 4.x | so same GTK 2.24 - 3.x - 4.x
-	//GtkEventController *event = gtk_event_controller_key_new ();
+	// @todo
+	//GtkEventController *event;
+	//event = gtk_event_controller_key_new ();
 	//g_signal_connect (event, "key-released", G_CALLBACK (accels_change), window);
 	//gtk_widget_add_controller (window, event);
 
@@ -2239,7 +2242,7 @@ static void create_traditional_menubar (GtkApplication *app, GMenu *root) {
 static GMenuItem* create_menuitem (GtkApplication *app, GMenu *menu, gchar *text, gchar *accel, gchar *keymap, gchar *icon, GCallback function) {
 
 	GMenuItem *menuitem;
-	GSimpleAction *action = NULL;
+	GSimpleAction *action;
 	gchar *acckey[2] = { accel, NULL };
 	gchar *appkey = (keymap && function) ? g_strdup_printf ("app.%s", keymap) : "disabled";
 
@@ -2251,7 +2254,7 @@ static GMenuItem* create_menuitem (GtkApplication *app, GMenu *menu, gchar *text
 
 	menuitem = g_menu_item_new (text, appkey);
 
-	if (function && action)
+	if (action && function)
 		g_signal_connect (action, "activate", function, NULL);
 	if (accel)
 		g_menu_item_set_attribute (menuitem, "accel", "s", accel, NULL);
@@ -2322,7 +2325,7 @@ static void activate_action (GSimpleAction *action, GVariant *parameter, gpointe
 }
 
 static void accels_change (GtkEventControllerKey *controller, guint keyval, guint keycode, GdkModifierType state) {
-	// @todo - not triggered when menu is open
+	// @todo
 }
 
 static void accels_save () {
