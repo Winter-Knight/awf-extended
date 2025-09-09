@@ -1,6 +1,6 @@
 /**
  * Forked  M/10/03/2020
- * Updated D/07/09/2025
+ * Updated L/21/07/2025
  *
  * Copyright 2020-2025 | Fabrice Creuzot (luigifab) <code~luigifab~fr>
  * https://github.com/luigifab/awf-extended
@@ -65,6 +65,7 @@
 #include <gdk/gdk.h>
 #include <libnotify/notify.h>
 #include <time.h>
+#include <locale.h>
 #include <getopt.h>
 #if GLIB_CHECK_VERSION (2,30,0)
 	#include <glib-unix.h>
@@ -373,7 +374,6 @@ static void quit () { // @common
 
 static void awf_load_theme (GHashTable* hashtable, gchar *directory) { // @common
 
-	g_printf("%s\n", directory);
 	if (g_file_test (directory, G_FILE_TEST_IS_DIR)) {
 
 		GError *error = NULL;
