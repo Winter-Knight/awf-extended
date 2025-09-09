@@ -65,6 +65,7 @@
 #include <gdk/gdk.h>
 #include <libnotify/notify.h>
 #include <time.h>
+#include <locale.h>
 #include <getopt.h>
 #if GLIB_CHECK_VERSION (2,30,0)
 	#include <glib-unix.h>
@@ -121,8 +122,10 @@
 #define _gtk(String) dgettext (g_strdup_printf ("gtk%d0", GTK_MAJOR_VERSION), String)
 
 // global variables
-static GSList *list_system_theme = NULL;
-static GSList *list_user_theme = NULL;
+static GHashTable *hash_system_theme = NULL;
+static GHashTable *hash_user_theme = NULL;
+static GList *list_system_theme = NULL;
+static GList *list_user_theme = NULL;
 static GtkWidget *window = NULL, *toolbar = NULL, *toolbarentry = NULL, *toolbarend = NULL, *statusbar = NULL;
 static GtkWidget *volume1 = NULL, *volume2 = NULL;
 static GtkWidget *progressbar1 = NULL, *progressbar2 = NULL, *progressbar3 = NULL, *progressbar4 = NULL, *progressbar8 = NULL, *progressbar9 = NULL;
@@ -139,7 +142,7 @@ static gboolean allow_update_theme = TRUE;
 //atic gboolean must_save_accels   = FALSE;
 
 // global functions
-static GSList* awf_load_theme (gchar *directory);
+static void awf_load_theme (GHashTable* hashtable, gchar *directory);
 static int awf_compare_theme (gconstpointer theme1, gconstpointer theme2);
 static void notify_updated_gtktheme (GSettings *settings, gchar *key, gpointer userdata);
 static void update_text_direction (int direction);
@@ -200,16 +203,31 @@ static gboolean on_scrolltabs (GtkEventControllerScroll *event, double dx, doubl
 int main (int argc, gchar **argv) {
 
 	int opt = 0, status = 0;
-	GSList *iterator = NULL;
+	hash_system_theme = g_hash_table_new (&g_str_hash, &g_str_equal);
+	hash_user_theme = g_hash_table_new (&g_str_hash, &g_str_equal);
+	GList *iterator = NULL;
+	gchar *directory;
 
-	// load available themes
-	list_system_theme = awf_load_theme ("/usr/share/themes");
-	list_system_theme = g_slist_sort (list_system_theme, (GCompareFunc) awf_compare_theme);
+	// load available system themes (/usr/local/share/themes && /usr/share/themes)
+	const char *const *dirs = g_get_system_data_dirs ();
+	for (opt = 0; dirs[opt]; opt++) {
+		directory = g_build_path ("/", dirs[opt], "themes", NULL);
+		awf_load_theme (hash_system_theme, directory);
+		g_free (directory);
+	}
 
-	gchar *directory = g_build_path ("/", g_getenv ("HOME"), ".themes", NULL);
-	list_user_theme  = awf_load_theme (directory);
-	list_user_theme  = g_slist_sort (list_user_theme, (GCompareFunc) awf_compare_theme);
+	list_system_theme = g_list_sort (g_hash_table_get_keys (hash_system_theme), (GCompareFunc) awf_compare_theme);
+
+	// load available user themes (HOME/.local/share/themes && HOME/.themes)
+	directory = g_build_path ("/", g_get_user_data_dir (), "themes", NULL);
+	awf_load_theme (hash_user_theme, directory);
 	g_free (directory);
+
+	directory = g_build_path ("/", g_get_home_dir (), ".themes", NULL);
+	awf_load_theme (hash_user_theme, directory);
+	g_free (directory);
+
+	list_user_theme = g_list_sort (g_hash_table_get_keys (hash_user_theme), (GCompareFunc) awf_compare_theme);
 
 	// locale
 	setlocale (LC_ALL, "");
@@ -245,8 +263,8 @@ int main (int argc, gchar **argv) {
 				return status;
 			// --theme <theme> -t <theme>
 			case 't':
-				if (g_slist_find_custom (list_system_theme, optarg, &awf_compare_theme) ||
-					g_slist_find_custom (list_user_theme, optarg, &awf_compare_theme))
+				if (g_hash_table_lookup (hash_system_theme, optarg) ||
+					g_hash_table_lookup (hash_user_theme, optarg))
 					opt_theme = (gchar*) optarg;
 				break;
 			// --screenshot <filename> -s <filename>
@@ -327,10 +345,7 @@ static void quit () { // @common
 	exit (0);
 }
 
-static GSList* awf_load_theme (gchar *directory) { // @common
-
-	GSList *list = NULL;
-	g_return_val_if_fail (directory != NULL, NULL);
+static void awf_load_theme (GHashTable* hashtable, gchar *directory) { // @common
 
 	if (g_file_test (directory, G_FILE_TEST_IS_DIR)) {
 
@@ -347,7 +362,7 @@ static GSList* awf_load_theme (gchar *directory) { // @common
 				if (g_file_test (theme_path, G_FILE_TEST_IS_DIR)) {
 					gchar *theme_subpath = g_build_path ("/", theme_path, gtkdir, NULL);
 					if (g_file_test (theme_subpath, G_FILE_TEST_IS_DIR))
-						list = g_slist_prepend (list, theme);
+						g_hash_table_replace (hashtable, theme, theme);
 					g_free (theme_subpath);
 				}
 
@@ -365,11 +380,6 @@ static GSList* awf_load_theme (gchar *directory) { // @common
 			g_error_free (error);
 		}
 	}
-
-	if (list)
-		list = g_slist_reverse (list);
-
-	return list;
 }
 
 static int awf_compare_theme (gconstpointer theme1, gconstpointer theme2) { // @common
@@ -432,9 +442,9 @@ static void update_theme (gchar *new_theme) { // @common
 	if (strcmp ((gchar*) new_theme, "refresh") == 0) {
 
 		gchar *default_theme = "None";
-		if (g_slist_find_custom (list_system_theme, "Default", &awf_compare_theme))
+		if (g_hash_table_lookup(hash_system_theme, "Default"))
 			default_theme = "Default";
-		else if (g_slist_find_custom (list_system_theme, "Raleigh", &awf_compare_theme))
+		else if (g_hash_table_lookup (hash_system_theme, "Raleigh"))
 			default_theme = "Raleigh";
 
 		if (default_theme) {
@@ -2060,7 +2070,7 @@ static void create_traditional_menubar (GtkApplication *app, GMenu *root) {
 
 	GMenu *menu, *submenu, *section, *base;
 	GSimpleAction *action;
-	GSList *iterator;
+	GList *iterator;
 
 	// options
 	menu = g_menu_new ();
@@ -2168,7 +2178,7 @@ static void create_traditional_menubar (GtkApplication *app, GMenu *root) {
 			base = menu;
 		}
 
-		if (g_slist_find_custom (list_user_theme, iterator->data, &awf_compare_theme))
+		if (g_hash_table_lookup (hash_user_theme, iterator->data))
 			g_menu_append_item (base, g_menu_item_new (iterator->data, "disabled")); // @todo
 		else
 			g_menu_append_item (base, g_menu_item_new (iterator->data, g_strdup_printf ("app.set-theme::%s", (gchar*) iterator->data)));
